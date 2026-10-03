@@ -6,6 +6,7 @@ import type { RequestsResponse, StatsResponse } from "./dashboard/types";
 import { costUsd } from "./pricing";
 import type { Router } from "./routing/router";
 import { TIERS, type Tier } from "./routing/tiers";
+import type { ToolTrimmer } from "./tools/trim";
 import type {
 	CascadeAttempt,
 	ClaudeUsage,
@@ -31,6 +32,8 @@ export interface AppOptions {
 		minPass: number;
 		defaultOn: boolean;
 	};
+	/** Drops unlikely tool definitions from requests with many tools; see x-gateway-trim-tools. */
+	toolTrim?: { trimmer: ToolTrimmer; defaultOn: boolean };
 	/** Serves the savings dashboard and its JSON API (no API key needed). */
 	dashboard?: {
 		stats: () => StatsResponse;
@@ -138,13 +141,40 @@ export function createApp(opts: AppOptions): Hono {
 		let cascadeFirst: Tier | null = null;
 		let escalationTier: Tier | null = null;
 		let jevForJudge: TypeSafeClient | undefined;
+		const tt = opts.toolTrim;
+		const trimHdr = c.req.header("x-gateway-trim-tools");
+		const doTrim =
+			!!tt &&
+			endpoint === "messages" &&
+			(trimHdr === "on" || (trimHdr !== "off" && tt.defaultOn));
+		const jevKey = c.req.header("x-jev-key");
+		let callerJev: TypeSafeClient | undefined;
+		const getCaller = () => {
+			if (!callerJev && jevKey && opts.makeJevClient) {
+				callerJev = opts.makeJevClient(jevKey);
+			}
+			return callerJev;
+		};
+		const jevOpts = () => {
+			const jev = getCaller();
+			return jev ? { jev } : undefined;
+		};
+		const trimP =
+			doTrim && tt ? tt.trimmer.trim(body, jevOpts()) : Promise.resolve(null);
+		const applyTrim = (t: Awaited<typeof trimP>) => {
+			if (!t?.record) return;
+			record.toolTrim = t.record;
+			routeHeaders = {
+				...routeHeaders,
+				"x-gateway-tools": `${t.record.kept}/${t.record.offered}`,
+			};
+		};
 		if (opts.router && model === "auto") {
 			const router = opts.router;
-			let decision: RouteDecision | null = null;
-			if (endpoint === "messages") {
-				const jevKey = c.req.header("x-jev-key");
+			const routeP = (async (): Promise<RouteDecision | null> => {
+				if (endpoint !== "messages") return null;
 				if (c.req.header("x-gateway-mode") === "off") {
-					decision = {
+					return {
 						tier: router.defaultTier,
 						reason: "fallback",
 						confidence: null,
@@ -153,16 +183,15 @@ export function createApp(opts: AppOptions): Hono {
 						jevCostUsd: null,
 						error: "routing off",
 					};
-				} else if (jevKey && opts.makeJevClient) {
-					decision = await router.route(body, {
-						jev: opts.makeJevClient(jevKey),
-					});
-				} else {
-					decision = await router.route(body);
 				}
-			}
+				return router.route(body, jevOpts());
+			})();
+			const [decision, trimmed] = await Promise.all([routeP, trimP]);
 			const tier = decision?.tier ?? router.defaultTier;
-			({ body: outBody, addBetas } = translateParams(body, tier));
+			({ body: outBody, addBetas } = translateParams(
+				trimmed?.body ?? body,
+				tier,
+			));
 			record.upstreamModel = TIERS[tier].model;
 			if (decision) record.route = decision;
 			const cc = opts.cascade;
@@ -178,16 +207,19 @@ export function createApp(opts: AppOptions): Hono {
 			) {
 				cascadeFirst = cc.firstTier;
 				escalationTier = tier;
-				const jevKey = c.req.header("x-jev-key");
-				if (jevKey && opts.makeJevClient) {
-					jevForJudge = opts.makeJevClient(jevKey);
-				}
+				jevForJudge = getCaller();
 			}
 			routeHeaders = {
+				...routeHeaders,
 				"x-gateway-tier": tier,
 				"x-gateway-model": TIERS[tier].model,
 				"x-gateway-decision-id": record.id,
 			};
+			applyTrim(trimmed);
+		} else {
+			const trimmed = await trimP;
+			if (trimmed) outBody = trimmed.body;
+			applyTrim(trimmed);
 		}
 		const beta = c.req.header("anthropic-beta");
 		const paramsFor = (b: Record<string, unknown>, extra: string[]) => {

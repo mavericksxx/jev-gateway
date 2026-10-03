@@ -6,6 +6,7 @@ import { createRouter } from "./routing/router";
 import { ALL_TIERS, type Tier } from "./routing/tiers";
 import { createApp } from "./server";
 import { createStore } from "./store/db";
+import { createToolTrimmer } from "./tools/trim";
 
 const port = Number(process.env.PORT ?? 8787);
 const upstreamBaseURL =
@@ -55,6 +56,15 @@ const router = createRouter({
 	timeoutMs,
 });
 
+const trimDefaultOn = process.env.TRIM_TOOLS_DEFAULT === "on";
+const trimMin = Number(process.env.TRIM_TOOLS_MIN ?? 15);
+const trimMinProb = Number(process.env.TRIM_TOOLS_MIN_PROB ?? 0.2);
+const trimKeepTop = Number(process.env.TRIM_TOOLS_KEEP_TOP ?? 5);
+const trimPinned = (process.env.TRIM_TOOLS_PINNED ?? "")
+	.split(",")
+	.map((s) => s.trim())
+	.filter(Boolean);
+
 const app = createApp({
 	upstreamBaseURL,
 	router,
@@ -63,6 +73,18 @@ const app = createApp({
 		firstTier: cascadeFirstTier as Tier,
 		minPass: cascadeMinPass,
 		defaultOn: cascadeDefaultOn,
+	},
+	toolTrim: {
+		trimmer: createToolTrimmer({
+			jev: gatewayJev,
+			budget,
+			timeoutMs,
+			minTools: trimMin,
+			minProbability: trimMinProb,
+			keepTop: trimKeepTop,
+			pinned: trimPinned,
+		}),
+		defaultOn: trimDefaultOn,
 	},
 	makeJevClient: (key) =>
 		createJevClient({ mode: "live", apiKey: key, timeoutMs }),
@@ -90,5 +112,8 @@ console.log(
 );
 console.log(
 	`cascade default=${cascadeDefaultOn ? "on" : "off"} first tier=${cascadeFirstTier} min pass=${cascadeMinPass}`,
+);
+console.log(
+	`tool trim default=${trimDefaultOn ? "on" : "off"} min tools=${trimMin} min prob=${trimMinProb} keep top=${trimKeepTop} pinned=${trimPinned.join(",") || "-"}`,
 );
 console.log(`dashboard: http://localhost:${port}/dashboard`);
