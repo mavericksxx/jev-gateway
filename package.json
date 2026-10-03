@@ -10,7 +10,9 @@
 		"lint": "biome check .",
 		"verify-jev": "bun run scripts/verify-jev.ts",
 		"seed-demo": "bun run scripts/seed-demo.ts",
-		"dashboard-preview": "bun run scripts/dashboard-preview.ts"
+		"dashboard-preview": "bun run scripts/dashboard-preview.ts",
+		"eval": "bun run eval/run.ts",
+		"eval:summary": "bun run eval/summarize.ts"
 	},
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.131.0",
