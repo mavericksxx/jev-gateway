@@ -80,6 +80,9 @@ export function createApp(opts: AppOptions): Hono {
 			authToken,
 			baseURL: opts.upstreamBaseURL,
 			maxRetries: 0,
+			// An explicit timeout stops the SDK from rejecting long non-streaming
+			// requests itself; the client already chose not to stream.
+			timeout: 60 * 60 * 1000,
 		});
 		const beta = c.req.header("anthropic-beta");
 		const betas = beta ? beta.split(",").map((s) => s.trim()) : undefined;

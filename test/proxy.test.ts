@@ -143,3 +143,13 @@ test("unreachable upstream gives 502", async () => {
 	expect(res.status).toBe(502);
 	expect(records[0]?.status).toBe(502);
 });
+
+test("long non-streaming request is not rejected by the gateway's SDK", async () => {
+	// The client sets its own timeout, as SDK users must for large max_tokens.
+	const msg = await client({ timeout: 60 * 60 * 1000 }).messages.create({
+		model: "m",
+		max_tokens: 64000,
+		messages: msgs,
+	});
+	expect(msg.content[0]).toMatchObject({ text: "Hello" });
+});
