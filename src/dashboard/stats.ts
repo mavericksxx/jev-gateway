@@ -138,6 +138,16 @@ export function computeStats(
 			costUsd: mix.get(tier)?.costUsd ?? 0,
 		})),
 		cascade,
+		// Placeholder until the tool-trim stats land in Phase 5.
+		toolTrim: {
+			requests: 0,
+			trimmed: 0,
+			toolsOffered: 0,
+			toolsRemoved: 0,
+			estimatedTokensSaved: 0,
+			estimatedSavedUsd: 0,
+			jevCostUsd: 0,
+		},
 		reasons,
 		bucketMs,
 		timeline,

@@ -32,6 +32,8 @@ export interface RequestRecord {
 	route?: RouteDecision;
 	/** Present only when a cheap-first attempt ran for this request. */
 	cascade?: CascadeAttempt;
+	/** Present only when tool trimming ran for this request. */
+	toolTrim?: ToolTrim;
 }
 
 /** How the router picked a tier for one request. */
@@ -75,5 +77,24 @@ export interface CascadeAttempt {
 	/** Cost of the rejected first attempt; 0 when accepted. */
 	wastedCostUsd: number;
 	/** Why it escalated without asking Jev (e.g. "stop_reason max_tokens"), or a Jev/upstream error. */
+	error: string | null;
+}
+
+/** Tool trimming for one request: Jev scored each tool and unlikely ones were not sent upstream. */
+export interface ToolTrim {
+	/** Tools in the client's request. */
+	offered: number;
+	/** Tools sent upstream. */
+	kept: number;
+	/** Names of tools not sent upstream (empty when nothing was trimmed). */
+	removed: string[];
+	/** Estimate: Math.ceil(JSON.stringify(removed tool definitions).length / 4). */
+	estimatedTokensSaved: number;
+	/** Jev's probability per scored tool name; null when Jev wasn't called or failed. */
+	scores: Record<string, number> | null;
+	jevLatencyMs: number | null;
+	/** Charged to the gateway's Jev budget; null when Jev wasn't called or a caller-supplied key was used. */
+	jevCostUsd: number | null;
+	/** Jev error, timeout or budget exhaustion; when set nothing was trimmed. */
 	error: string | null;
 }

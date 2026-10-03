@@ -17,13 +17,15 @@ export interface StatsResponse {
 		/**
 		 * Estimate: routed requests re-priced at the baseline model with the same token
 		 * counts; non-routed requests count at their actual cost (no savings claimed).
+		 * Trimmed requests add back toolTrim.estimatedTokensSaved as uncached input tokens,
+		 * priced at the baseline model (routed) or the upstream model (non-routed).
 		 */
 		baselineCostUsd: number;
 		/** baselineCostUsd - actualCostUsd */
 		savedUsd: number;
 		/** savedUsd / baselineCostUsd; null when baselineCostUsd is 0. */
 		savedPct: number | null;
-		/** Router + cascade-judge Jev costs. */
+		/** Router + cascade-judge + tool-trim Jev costs. */
 		jevSpentUsd: number;
 		jevBudgetUsd: number;
 		/** savedUsd - jevSpentUsd */
@@ -48,6 +50,20 @@ export interface StatsResponse {
 		escalated: number;
 		wastedUsd: number;
 		/** Jev cost of judging answers (already inside totals.jevSpentUsd). */
+		jevCostUsd: number;
+	};
+	/** Over messages requests that carry a toolTrim record. */
+	toolTrim: {
+		/** Requests where trimming ran (including ones where Jev failed and nothing was trimmed). */
+		requests: number;
+		/** Requests where at least one tool was removed. */
+		trimmed: number;
+		toolsOffered: number;
+		toolsRemoved: number;
+		estimatedTokensSaved: number;
+		/** Estimate, already inside totals.savedUsd: tokens saved priced as in baselineCostUsd. */
+		estimatedSavedUsd: number;
+		/** Already inside totals.jevSpentUsd. */
 		jevCostUsd: number;
 	};
 	/** Routed requests by decision reason; all four keys always present. */
