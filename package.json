@@ -10,7 +10,9 @@
 		"verify-jev": "bun run scripts/verify-jev.ts"
 	},
 	"dependencies": {
-		"@typesafe-ai/sdk": "^0.6.0"
+		"@anthropic-ai/sdk": "^0.131.0",
+		"@typesafe-ai/sdk": "^0.6.0",
+		"hono": "^4.13.12"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.15",
