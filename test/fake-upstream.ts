@@ -24,6 +24,8 @@ export function startFakeUpstream(): FakeUpstream {
 			const body = (await req.json().catch(() => null)) as {
 				model?: string;
 				stream?: boolean;
+				max_tokens?: number;
+				system?: string;
 			} | null;
 			requests.push({
 				path: u.pathname + u.search,
@@ -48,13 +50,23 @@ export function startFakeUpstream(): FakeUpstream {
 					{ status: 400 },
 				);
 			}
+			// Test-only triggers.
+			if (model === "claude-haiku-4-5" && body?.system === "fail-haiku") {
+				return Response.json(
+					{
+						type: "error",
+						error: { type: "api_error", message: "haiku down" },
+					},
+					{ status: 500 },
+				);
+			}
 			const message = {
 				id: "msg_fake",
 				type: "message",
 				role: "assistant",
 				model,
 				content: [{ type: "text", text: "Hello" }],
-				stop_reason: "end_turn",
+				stop_reason: body?.max_tokens === 1 ? "max_tokens" : "end_turn",
 				stop_sequence: null,
 				usage,
 			};
@@ -93,7 +105,7 @@ export function startFakeUpstream(): FakeUpstream {
 					"message_delta",
 					{
 						type: "message_delta",
-						delta: { stop_reason: "end_turn", stop_sequence: null },
+						delta: { stop_reason: message.stop_reason, stop_sequence: null },
 						usage: { output_tokens: 5 },
 					},
 				],

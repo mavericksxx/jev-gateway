@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
-import { costUsd } from "../src/pricing";
+import { costUsd, recordCostUsd } from "../src/pricing";
+import type { RequestRecord } from "../src/types";
 
 const usage = {
 	input_tokens: 1_000_000,
@@ -37,4 +38,40 @@ test("zero usage costs 0", () => {
 		cache_read_input_tokens: 0,
 	};
 	expect(costUsd("claude-haiku-4-5", zero)).toBe(0);
+});
+
+const rec = (over: Partial<RequestRecord>): RequestRecord => ({
+	id: "x",
+	startedAt: 0,
+	latencyMs: 0,
+	endpoint: "messages",
+	requestedModel: "auto",
+	upstreamModel: "claude-haiku-4-5",
+	stream: false,
+	status: 200,
+	usage: null,
+	error: null,
+	...over,
+});
+
+test("recordCostUsd: usage only, waste only, both, neither", () => {
+	const base = costUsd("claude-haiku-4-5", usage) ?? 0;
+	const cascade = {
+		firstTier: "haiku",
+		escalationTier: "opus-medium",
+		accepted: false,
+		passProbability: 0.1,
+		jevLatencyMs: 1,
+		jevCostUsd: null,
+		wastedUsage: null,
+		wastedCostUsd: 0.5,
+		error: null,
+	} as const;
+	expect(recordCostUsd(rec({ usage }))).toBeCloseTo(base, 10);
+	expect(recordCostUsd(rec({ cascade }))).toBe(0.5);
+	expect(recordCostUsd(rec({ usage, cascade }))).toBeCloseTo(base + 0.5, 10);
+	expect(recordCostUsd(rec({}))).toBeNull();
+	expect(
+		recordCostUsd(rec({ usage, upstreamModel: "claude-nope", cascade })),
+	).toBe(0.5);
 });

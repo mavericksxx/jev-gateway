@@ -1,4 +1,4 @@
-import type { ClaudeUsage } from "./types";
+import type { ClaudeUsage, RequestRecord } from "./types";
 
 /** USD per 1M tokens. */
 export interface ModelPrice {
@@ -37,4 +37,13 @@ export function costUsd(model: string, usage: ClaudeUsage): number | null {
 			usage.cache_creation_input_tokens * p.cacheWrite) /
 		1_000_000
 	);
+}
+
+/** Cost of the response the client received plus any rejected cheap-first attempt. Null when neither can be priced. */
+export function recordCostUsd(record: RequestRecord): number | null {
+	const base = record.usage
+		? costUsd(record.upstreamModel, record.usage)
+		: null;
+	const waste = record.cascade?.wastedCostUsd ?? 0;
+	return base === null && waste === 0 ? null : (base ?? 0) + waste;
 }

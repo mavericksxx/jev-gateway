@@ -1,6 +1,7 @@
+import { createCascadeJudge } from "./cascade/judge";
 import { computeStats, withBaseline } from "./dashboard/stats";
 import { createJevClient } from "./jev/client";
-import { costUsd } from "./pricing";
+import { recordCostUsd } from "./pricing";
 import { createRouter } from "./routing/router";
 import { ALL_TIERS, type Tier } from "./routing/tiers";
 import { createApp } from "./server";
@@ -26,19 +27,29 @@ if (!ALL_TIERS.includes(baselineTier as Tier)) {
 		`BASELINE_TIER "${baselineTier}" is not one of ${ALL_TIERS.join(", ")}`,
 	);
 }
+const cascadeFirstTier = process.env.CASCADE_FIRST_TIER ?? "haiku";
+if (!ALL_TIERS.includes(cascadeFirstTier as Tier)) {
+	throw new Error(
+		`CASCADE_FIRST_TIER "${cascadeFirstTier}" is not one of ${ALL_TIERS.join(", ")}`,
+	);
+}
+const cascadeDefaultOn = process.env.CASCADE_DEFAULT === "on";
+const cascadeMinPass = Number(process.env.CASCADE_MIN_PASS ?? 0.7);
 let spent = store.jevSpentUsd();
-const router = createRouter({
-	jev: createJevClient({
-		mode: jevMode,
-		apiKey: process.env.TYPESAFE_API_KEY,
-		timeoutMs,
-	}),
-	budget: {
-		remainingUsd: () => budgetLimit - spent,
-		charge: (usd) => {
-			spent += usd;
-		},
+const budget = {
+	remainingUsd: () => budgetLimit - spent,
+	charge: (usd: number) => {
+		spent += usd;
 	},
+};
+const gatewayJev = createJevClient({
+	mode: jevMode,
+	apiKey: process.env.TYPESAFE_API_KEY,
+	timeoutMs,
+});
+const router = createRouter({
+	jev: gatewayJev,
+	budget,
 	defaultTier: defaultTier as Tier,
 	minConfidence: Number(process.env.ROUTER_MIN_CONFIDENCE ?? 0.5),
 	timeoutMs,
@@ -47,6 +58,12 @@ const router = createRouter({
 const app = createApp({
 	upstreamBaseURL,
 	router,
+	cascade: {
+		judge: createCascadeJudge({ jev: gatewayJev, budget, timeoutMs }),
+		firstTier: cascadeFirstTier as Tier,
+		minPass: cascadeMinPass,
+		defaultOn: cascadeDefaultOn,
+	},
 	makeJevClient: (key) =>
 		createJevClient({ mode: "live", apiKey: key, timeoutMs }),
 	dashboard: {
@@ -58,11 +75,7 @@ const app = createApp({
 		requests: (n) => withBaseline(store.recent(n), baselineTier as Tier),
 		htmlPath: new URL("./dashboard/index.html", import.meta.url).pathname,
 	},
-	onRecord: (record) =>
-		store.insert(
-			record,
-			record.usage ? costUsd(record.upstreamModel, record.usage) : null,
-		),
+	onRecord: (record) => store.insert(record, recordCostUsd(record)),
 });
 
 // idleTimeout 0: streamed responses can sit quiet for longer than Bun's 10s default.
@@ -74,5 +87,8 @@ console.log(
 );
 console.log(
 	`jev mode=${jevMode} budget remaining=$${(budgetLimit - spent).toFixed(4)} default tier=${defaultTier}`,
+);
+console.log(
+	`cascade default=${cascadeDefaultOn ? "on" : "off"} first tier=${cascadeFirstTier} min pass=${cascadeMinPass}`,
 );
 console.log(`dashboard: http://localhost:${port}/dashboard`);

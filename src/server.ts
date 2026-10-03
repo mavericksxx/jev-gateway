@@ -1,10 +1,18 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { TypeSafeClient } from "@typesafe-ai/sdk";
 import { type Context, Hono } from "hono";
+import type { CascadeJudge } from "./cascade/judge";
 import type { RequestsResponse, StatsResponse } from "./dashboard/types";
+import { costUsd } from "./pricing";
 import type { Router } from "./routing/router";
-import { TIERS } from "./routing/tiers";
-import type { ClaudeUsage, RequestRecord, RouteDecision } from "./types";
+import { TIERS, type Tier } from "./routing/tiers";
+import type {
+	CascadeAttempt,
+	ClaudeUsage,
+	RequestRecord,
+	RouteDecision,
+} from "./types";
+import { messageToSseEvents } from "./upstream/sse";
 import { translateParams } from "./upstream/translate";
 
 export interface AppOptions {
@@ -16,6 +24,13 @@ export interface AppOptions {
 	router?: Router;
 	/** Builds a Jev client for a caller-supplied `x-jev-key`. Required for BYO keys; tests inject a mock. */
 	makeJevClient?: (apiKey: string) => TypeSafeClient;
+	/** Cheap-first retry for routed requests; see the x-gateway-cascade header. */
+	cascade?: {
+		judge: CascadeJudge;
+		firstTier: Tier;
+		minPass: number;
+		defaultOn: boolean;
+	};
 	/** Serves the savings dashboard and its JSON API (no API key needed). */
 	dashboard?: {
 		stats: () => StatsResponse;
@@ -120,6 +135,9 @@ export function createApp(opts: AppOptions): Hono {
 		});
 		let outBody = body;
 		let addBetas: string[] = [];
+		let cascadeFirst: Tier | null = null;
+		let escalationTier: Tier | null = null;
+		let jevForJudge: TypeSafeClient | undefined;
 		if (opts.router && model === "auto") {
 			const router = opts.router;
 			let decision: RouteDecision | null = null;
@@ -147,6 +165,24 @@ export function createApp(opts: AppOptions): Hono {
 			({ body: outBody, addBetas } = translateParams(body, tier));
 			record.upstreamModel = TIERS[tier].model;
 			if (decision) record.route = decision;
+			const cc = opts.cascade;
+			const hdr = c.req.header("x-gateway-cascade");
+			const hasTools = Array.isArray(body.tools) && body.tools.length > 0;
+			if (
+				cc &&
+				decision &&
+				(hdr === "on" || (hdr !== "off" && cc.defaultOn)) &&
+				decision.reason !== "fallback" &&
+				!hasTools &&
+				TIERS[tier].rank > TIERS[cc.firstTier].rank
+			) {
+				cascadeFirst = cc.firstTier;
+				escalationTier = tier;
+				const jevKey = c.req.header("x-jev-key");
+				if (jevKey && opts.makeJevClient) {
+					jevForJudge = opts.makeJevClient(jevKey);
+				}
+			}
 			routeHeaders = {
 				"x-gateway-tier": tier,
 				"x-gateway-model": TIERS[tier].model,
@@ -154,17 +190,23 @@ export function createApp(opts: AppOptions): Hono {
 			};
 		}
 		const beta = c.req.header("anthropic-beta");
-		const allBetas = [
-			...new Set([
-				...(beta ? beta.split(",").map((s) => s.trim()) : []),
-				...addBetas,
-			]),
-		];
-		// Body is forwarded as-is, including fields the SDK types don't know.
-		const params = {
-			...outBody,
-			...(allBetas.length ? { betas: allBetas } : {}),
-		} as never;
+		const paramsFor = (b: Record<string, unknown>, extra: string[]) => {
+			const betas = [
+				...new Set([
+					...(beta ? beta.split(",").map((s) => s.trim()) : []),
+					...extra,
+				]),
+			];
+			// Body is forwarded as-is, including fields the SDK types don't know.
+			return { ...b, ...(betas.length ? { betas } : {}) } as never;
+		};
+		const params = paramsFor(outBody, addBetas);
+		const toUsage = (u: Anthropic.Beta.Messages.BetaUsage): ClaudeUsage => ({
+			input_tokens: u.input_tokens,
+			output_tokens: u.output_tokens,
+			cache_creation_input_tokens: u.cache_creation_input_tokens ?? 0,
+			cache_read_input_tokens: u.cache_read_input_tokens ?? 0,
+		});
 
 		try {
 			if (endpoint === "count_tokens") {
@@ -172,15 +214,88 @@ export function createApp(opts: AppOptions): Hono {
 				finish();
 				return c.json(res, 200, routeHeaders);
 			}
+			if (cascadeFirst && escalationTier && opts.cascade) {
+				const cc = opts.cascade;
+				const firstModel = TIERS[cascadeFirst].model;
+				const attempt: CascadeAttempt = {
+					firstTier: cascadeFirst,
+					escalationTier,
+					accepted: false,
+					passProbability: null,
+					jevLatencyMs: null,
+					jevCostUsd: null,
+					wastedUsage: null,
+					wastedCostUsd: 0,
+					error: null,
+				};
+				record.cascade = attempt;
+				let first: Anthropic.Beta.Messages.BetaMessage | null = null;
+				try {
+					const t = translateParams({ ...body, stream: false }, cascadeFirst);
+					first = (await client.beta.messages.create(
+						paramsFor(t.body, t.addBetas),
+					)) as Anthropic.Beta.Messages.BetaMessage;
+				} catch (err) {
+					attempt.error = err instanceof Error ? err.message : String(err);
+				}
+				if (first) {
+					const usage = toUsage(first.usage);
+					attempt.wastedUsage = usage;
+					attempt.wastedCostUsd = costUsd(firstModel, usage) ?? 0;
+					if (
+						first.stop_reason === "max_tokens" ||
+						first.stop_reason === "refusal"
+					) {
+						attempt.error = `stop_reason ${first.stop_reason}`;
+					} else {
+						const j = await cc.judge.judge(body, first, {
+							jev: jevForJudge,
+						});
+						attempt.passProbability = j.passProbability;
+						attempt.jevLatencyMs = j.jevLatencyMs;
+						attempt.jevCostUsd = j.jevCostUsd;
+						attempt.error = j.error;
+						if (j.passProbability !== null && j.passProbability >= cc.minPass) {
+							attempt.accepted = true;
+							attempt.wastedUsage = null;
+							attempt.wastedCostUsd = 0;
+							record.usage = usage;
+							record.upstreamModel = firstModel;
+							routeHeaders = {
+								...routeHeaders,
+								"x-gateway-tier": cascadeFirst,
+								"x-gateway-model": firstModel,
+								"x-gateway-cascade": "accepted",
+							};
+							if (!stream) {
+								finish();
+								return c.json(first, 200, routeHeaders);
+							}
+							const enc = new TextEncoder();
+							const sse = messageToSseEvents(first)
+								.map(
+									(e) =>
+										`event: ${e.type}\ndata: ${JSON.stringify(e.data)}\n\n`,
+								)
+								.join("");
+							finish();
+							return new Response(enc.encode(sse), {
+								headers: {
+									...routeHeaders,
+									"content-type": "text/event-stream",
+									"cache-control": "no-cache",
+								},
+							});
+						}
+					}
+				}
+				routeHeaders = { ...routeHeaders, "x-gateway-cascade": "escalated" };
+			}
 			if (!stream) {
 				const msg = await client.beta.messages.create(params);
-				const u = (msg as Anthropic.Message).usage;
-				record.usage = {
-					input_tokens: u.input_tokens,
-					output_tokens: u.output_tokens,
-					cache_creation_input_tokens: u.cache_creation_input_tokens ?? 0,
-					cache_read_input_tokens: u.cache_read_input_tokens ?? 0,
-				};
+				record.usage = toUsage(
+					(msg as Anthropic.Beta.Messages.BetaMessage).usage,
+				);
 				finish();
 				return c.json(msg, 200, routeHeaders);
 			}
