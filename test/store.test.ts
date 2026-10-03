@@ -1,3 +1,4 @@
+import { Database } from "bun:sqlite";
 import { expect, test } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -57,6 +58,67 @@ test("file database persists across close and reopen", () => {
 		const second = createStore(path);
 		expect(second.recent(10)).toEqual([{ ...a, costUsd: 1.5 }]);
 		second.close();
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
+
+const routed: RequestRecord = {
+	...a,
+	id: "r",
+	startedAt: 3000,
+	route: {
+		tier: "sonnet-low",
+		reason: "jev",
+		confidence: 0.9,
+		probabilities: { "sonnet-low": 0.9, haiku: 0.1 },
+		jevLatencyMs: 40,
+		jevCostUsd: 0.002,
+		error: null,
+	},
+};
+
+test("route decision round-trips", () => {
+	const store = createStore(":memory:");
+	store.insert(routed, 0.1);
+	expect(store.recent(1)).toEqual([{ ...routed, costUsd: 0.1 }]);
+	store.close();
+});
+
+test("jevSpentUsd sums route costs", () => {
+	const store = createStore(":memory:");
+	expect(store.jevSpentUsd()).toBe(0);
+	store.insert(a, null);
+	store.insert(routed, null);
+	store.insert({ ...routed, id: "r2" }, null);
+	expect(store.jevSpentUsd()).toBeCloseTo(0.004);
+	store.close();
+});
+
+test("opening a Phase 1 database adds route columns and keeps rows", () => {
+	const dir = mkdtempSync(join(tmpdir(), "jev-store-"));
+	const path = join(dir, "old.db");
+	try {
+		const old = new Database(path);
+		old.run(`CREATE TABLE requests (
+			id TEXT PRIMARY KEY, started_at INTEGER NOT NULL, latency_ms INTEGER NOT NULL,
+			endpoint TEXT NOT NULL, requested_model TEXT NOT NULL, upstream_model TEXT NOT NULL,
+			stream INTEGER NOT NULL, status INTEGER NOT NULL, input_tokens INTEGER,
+			output_tokens INTEGER, cache_creation_input_tokens INTEGER,
+			cache_read_input_tokens INTEGER, error TEXT, cost_usd REAL
+		)`);
+		old.run(
+			"INSERT INTO requests VALUES ('o',1,2,'messages','m','m',0,200,1,2,0,0,NULL,0.5)",
+		);
+		old.close();
+		const store = createStore(path);
+		store.insert(routed, null);
+		const rows = store.recent(10);
+		expect(rows).toHaveLength(2);
+		expect(rows[1]).toMatchObject({ id: "o", costUsd: 0.5 });
+		expect(rows[1]?.route).toBeUndefined();
+		expect(rows[0]?.route?.tier).toBe("sonnet-low");
+		store.close();
 	} finally {
 		rmSync(dir, { recursive: true, force: true });
 	}
