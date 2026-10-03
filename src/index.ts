@@ -1,3 +1,6 @@
+import { createSemanticCache } from "./cache/cache";
+import { createLocalEmbedder } from "./cache/embedder";
+import { createCacheStore } from "./cache/store";
 import { createCascadeJudge } from "./cascade/judge";
 import { computeStats, withBaseline } from "./dashboard/stats";
 import { createJevClient } from "./jev/client";
@@ -65,6 +68,14 @@ const trimPinned = (process.env.TRIM_TOOLS_PINNED ?? "")
 	.map((s) => s.trim())
 	.filter(Boolean);
 
+const cacheDefaultOn = process.env.CACHE_DEFAULT === "on";
+const cacheTtlHours = Number(process.env.CACHE_TTL_HOURS ?? 24);
+const cacheMinSimilarity = Number(process.env.CACHE_MIN_SIMILARITY ?? 0.8);
+const cacheMinMatch = Number(process.env.CACHE_MIN_MATCH ?? 0.85);
+const cacheMaxCandidates = Number(process.env.CACHE_MAX_CANDIDATES ?? 3);
+const cacheStore = createCacheStore(process.env.GATEWAY_DB ?? "jev-gateway.db");
+cacheStore.prune(Date.now(), cacheTtlHours * 3_600_000);
+
 const app = createApp({
 	upstreamBaseURL,
 	router,
@@ -85,6 +96,20 @@ const app = createApp({
 			pinned: trimPinned,
 		}),
 		defaultOn: trimDefaultOn,
+	},
+	cache: {
+		cache: createSemanticCache({
+			embedder: createLocalEmbedder(),
+			store: cacheStore,
+			jev: gatewayJev,
+			budget,
+			timeoutMs,
+			ttlMs: cacheTtlHours * 3_600_000,
+			minSimilarity: cacheMinSimilarity,
+			minMatch: cacheMinMatch,
+			maxCandidates: cacheMaxCandidates,
+		}),
+		defaultOn: cacheDefaultOn,
 	},
 	makeJevClient: (key) =>
 		createJevClient({ mode: "live", apiKey: key, timeoutMs }),
@@ -115,5 +140,8 @@ console.log(
 );
 console.log(
 	`tool trim default=${trimDefaultOn ? "on" : "off"} min tools=${trimMin} min prob=${trimMinProb} keep top=${trimKeepTop} pinned=${trimPinned.join(",") || "-"}`,
+);
+console.log(
+	`cache default=${cacheDefaultOn ? "on" : "off"} ttl=${cacheTtlHours}h min similarity=${cacheMinSimilarity} min match=${cacheMinMatch} max candidates=${cacheMaxCandidates}`,
 );
 console.log(`dashboard: http://localhost:${port}/dashboard`);

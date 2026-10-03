@@ -41,6 +41,7 @@ export function costUsd(model: string, usage: ClaudeUsage): number | null {
 
 /** Cost of the response the client received plus any rejected cheap-first attempt. Null when neither can be priced. */
 export function recordCostUsd(record: RequestRecord): number | null {
+	if (record.cache?.outcome === "hit") return 0;
 	const base = record.usage
 		? costUsd(record.upstreamModel, record.usage)
 		: null;

@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { TypeSafeClient } from "@typesafe-ai/sdk";
 import { type Context, Hono } from "hono";
+import type { SemanticCache } from "./cache/cache";
+import { isStorable } from "./cache/cache";
 import type { CascadeJudge } from "./cascade/judge";
 import type { RequestsResponse, StatsResponse } from "./dashboard/types";
 import { costUsd } from "./pricing";
@@ -13,6 +15,7 @@ import type {
 	RequestRecord,
 	RouteDecision,
 } from "./types";
+import { accumulateMessage } from "./upstream/accumulate";
 import { messageToSseEvents } from "./upstream/sse";
 import { translateParams } from "./upstream/translate";
 
@@ -34,6 +37,8 @@ export interface AppOptions {
 	};
 	/** Drops unlikely tool definitions from requests with many tools; see x-gateway-trim-tools. */
 	toolTrim?: { trimmer: ToolTrimmer; defaultOn: boolean };
+	/** Semantic answer cache for simple single-turn requests; see x-gateway-cache. */
+	cache?: { cache: SemanticCache; defaultOn: boolean };
 	/** Serves the savings dashboard and its JSON API (no API key needed). */
 	dashboard?: {
 		stats: () => StatsResponse;
@@ -159,6 +164,14 @@ export function createApp(opts: AppOptions): Hono {
 			const jev = getCaller();
 			return jev ? { jev } : undefined;
 		};
+		const cc$ = opts.cache;
+		const cacheHdr = c.req.header("x-gateway-cache");
+		const cacheP =
+			cc$ &&
+			endpoint === "messages" &&
+			(cacheHdr === "on" || (cacheHdr !== "off" && cc$.defaultOn))
+				? cc$.cache.lookup(body, jevOpts())
+				: Promise.resolve(null);
 		const trimP =
 			doTrim && tt ? tt.trimmer.trim(body, jevOpts()) : Promise.resolve(null);
 		const applyTrim = (t: Awaited<typeof trimP>) => {
@@ -169,6 +182,13 @@ export function createApp(opts: AppOptions): Hono {
 				"x-gateway-tools": `${t.record.kept}/${t.record.offered}`,
 			};
 		};
+		const toUsage = (u: Anthropic.Beta.Messages.BetaUsage): ClaudeUsage => ({
+			input_tokens: u.input_tokens,
+			output_tokens: u.output_tokens,
+			cache_creation_input_tokens: u.cache_creation_input_tokens ?? 0,
+			cache_read_input_tokens: u.cache_read_input_tokens ?? 0,
+		});
+		let cacheRes: Awaited<typeof cacheP> = null;
 		if (opts.router && model === "auto") {
 			const router = opts.router;
 			const routeP = (async (): Promise<RouteDecision | null> => {
@@ -186,7 +206,12 @@ export function createApp(opts: AppOptions): Hono {
 				}
 				return router.route(body, jevOpts());
 			})();
-			const [decision, trimmed] = await Promise.all([routeP, trimP]);
+			const [decision, trimmed, cached] = await Promise.all([
+				routeP,
+				trimP,
+				cacheP,
+			]);
+			cacheRes = cached;
 			const tier = decision?.tier ?? router.defaultTier;
 			({ body: outBody, addBetas } = translateParams(
 				trimmed?.body ?? body,
@@ -217,10 +242,43 @@ export function createApp(opts: AppOptions): Hono {
 			};
 			applyTrim(trimmed);
 		} else {
-			const trimmed = await trimP;
+			const [trimmed, cached] = await Promise.all([trimP, cacheP]);
+			cacheRes = cached;
 			if (trimmed) outBody = trimmed.body;
 			applyTrim(trimmed);
 		}
+		const sseResponse = (msg: Anthropic.Beta.Messages.BetaMessage) =>
+			new Response(
+				messageToSseEvents(msg)
+					.map((e) => `event: ${e.type}\ndata: ${JSON.stringify(e.data)}\n\n`)
+					.join(""),
+				{
+					headers: {
+						...routeHeaders,
+						"content-type": "text/event-stream",
+						"cache-control": "no-cache",
+					},
+				},
+			);
+		if (cacheRes) {
+			record.cache = cacheRes.lookup;
+			routeHeaders = {
+				...routeHeaders,
+				"x-gateway-cache-result": cacheRes.hit ? "hit" : "miss",
+			};
+			const hit = cacheRes.hit;
+			if (hit) {
+				record.usage = toUsage(hit.usage);
+				record.upstreamModel = hit.model;
+				finish();
+				return stream ? sseResponse(hit) : c.json(hit, 200, routeHeaders);
+			}
+		}
+		const storeAnswer = (msg: Anthropic.Beta.Messages.BetaMessage | null) => {
+			if (!record.cache || !opts.cache || !msg || !isStorable(msg)) return;
+			record.cache.stored = true;
+			void opts.cache.cache.store(body, msg, record.id);
+		};
 		const beta = c.req.header("anthropic-beta");
 		const paramsFor = (b: Record<string, unknown>, extra: string[]) => {
 			const betas = [
@@ -233,12 +291,6 @@ export function createApp(opts: AppOptions): Hono {
 			return { ...b, ...(betas.length ? { betas } : {}) } as never;
 		};
 		const params = paramsFor(outBody, addBetas);
-		const toUsage = (u: Anthropic.Beta.Messages.BetaUsage): ClaudeUsage => ({
-			input_tokens: u.input_tokens,
-			output_tokens: u.output_tokens,
-			cache_creation_input_tokens: u.cache_creation_input_tokens ?? 0,
-			cache_read_input_tokens: u.cache_read_input_tokens ?? 0,
-		});
 
 		try {
 			if (endpoint === "count_tokens") {
@@ -299,6 +351,7 @@ export function createApp(opts: AppOptions): Hono {
 								"x-gateway-model": firstModel,
 								"x-gateway-cascade": "accepted",
 							};
+							storeAnswer(first);
 							if (!stream) {
 								finish();
 								return c.json(first, 200, routeHeaders);
@@ -328,6 +381,7 @@ export function createApp(opts: AppOptions): Hono {
 				record.usage = toUsage(
 					(msg as Anthropic.Beta.Messages.BetaMessage).usage,
 				);
+				storeAnswer(msg as Anthropic.Beta.Messages.BetaMessage);
 				finish();
 				return c.json(msg, 200, routeHeaders);
 			}
@@ -347,6 +401,7 @@ export function createApp(opts: AppOptions): Hono {
 				cache_read_input_tokens: 0,
 			};
 			record.usage = usage;
+			const forwarded: Array<{ type: string } & Record<string, unknown>> = [];
 			const enc = new TextEncoder();
 			const send = (
 				ctl: ReadableStreamDefaultController,
@@ -360,6 +415,7 @@ export function createApp(opts: AppOptions): Hono {
 				async start(ctl) {
 					try {
 						for await (const ev of events) {
+							if (cacheRes) forwarded.push(ev);
 							const u =
 								ev.type === "message_start"
 									? ev.message?.usage
@@ -374,6 +430,7 @@ export function createApp(opts: AppOptions): Hono {
 							}
 							send(ctl, ev.type, ev);
 						}
+						storeAnswer(accumulateMessage(forwarded));
 					} catch (err) {
 						if (!controller.signal.aborted) {
 							const [status, payload] = toPayload(err);

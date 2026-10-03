@@ -75,3 +75,25 @@ test("recordCostUsd: usage only, waste only, both, neither", () => {
 		recordCostUsd(rec({ usage, upstreamModel: "claude-nope", cascade })),
 	).toBe(0.5);
 });
+
+test("recordCostUsd: cache hit costs 0", () => {
+	expect(
+		recordCostUsd(
+			rec({
+				usage,
+				cache: {
+					outcome: "hit",
+					candidates: 1,
+					bestSimilarity: 0.9,
+					matchProbability: 0.95,
+					sourceRequestId: "r",
+					jevLatencyMs: 1,
+					jevCostUsd: null,
+					lookupMs: 1,
+					stored: false,
+					error: null,
+				},
+			}),
+		),
+	).toBe(0);
+});
