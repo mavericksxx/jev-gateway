@@ -70,12 +70,13 @@ export function isCacheable(body: Obj): boolean {
 	return body.temperature === undefined || body.temperature === 0;
 }
 
-/** sha256 hex of JSON.stringify([tenant, model, system ?? null, output_config ?? null, stop_sequences ?? null, thinking ?? null]). */
-export function cacheScope(body: Obj, tenant = ""): string {
+/** sha256 hex of JSON.stringify([tenant, embedderId, model, system ?? null, output_config ?? null, stop_sequences ?? null, thinking ?? null]). */
+export function cacheScope(body: Obj, tenant = "", embedderId = ""): string {
 	return new Bun.CryptoHasher("sha256")
 		.update(
 			JSON.stringify([
 				tenant,
+				embedderId,
 				body.model,
 				body.system ?? null,
 				body.output_config ?? null,
@@ -127,7 +128,11 @@ export function createSemanticCache(opts: SemanticCacheOptions): SemanticCache {
 			try {
 				const vec = await opts.embedder.embed(question);
 				const scored = opts.store
-					.inScope(cacheScope(body, ro?.tenant), start, opts.ttlMs)
+					.inScope(
+						cacheScope(body, ro?.tenant, opts.embedder.id),
+						start,
+						opts.ttlMs,
+					)
 					.map((entry) => ({ entry, sim: dot(vec, entry.embedding) }));
 				if (scored.length > 0) {
 					lookup.bestSimilarity = Math.max(...scored.map((s) => s.sim));
@@ -205,7 +210,7 @@ export function createSemanticCache(opts: SemanticCacheOptions): SemanticCache {
 				if (question === null || !isStorable(message)) return false;
 				opts.store.add({
 					id: crypto.randomUUID(),
-					scope: cacheScope(body, tenant),
+					scope: cacheScope(body, tenant, opts.embedder.id),
 					question,
 					embedding: await opts.embedder.embed(question),
 					message,

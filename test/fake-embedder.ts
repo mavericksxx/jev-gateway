@@ -2,6 +2,7 @@ import type { Embedder } from "../src/cache/embedder";
 
 /** Deterministic bag-of-words embedder for tests: shared words → high cosine similarity. */
 export const fakeEmbedder: Embedder = {
+	id: "fake:bow64",
 	async embed(text) {
 		const v = new Float32Array(64);
 		for (const w of text.toLowerCase().match(/[a-z0-9]+/g) ?? []) {

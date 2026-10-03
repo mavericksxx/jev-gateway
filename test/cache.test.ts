@@ -230,3 +230,29 @@ test("lookup: Jev error, budget exhausted, caller client", async () => {
 	expect(caller?.lookup.jevCostUsd).toBeNull();
 	expect(t.charged()).toBe(before);
 });
+
+test("embedder id partitions the cache; cacheScope differs by embedderId", async () => {
+	expect(cacheScope(body(Q), "", "a")).not.toBe(cacheScope(body(Q), "", "b"));
+	const store = createCacheStore(":memory:");
+	const make = (id: string) =>
+		createSemanticCache({
+			embedder: { ...fakeEmbedder, id },
+			store,
+			jev: new TypeSafeClient({
+				apiKey: "x",
+				retry: { maxRetries: 0 },
+				fetch: createMockFetch({ k0: 0.95 }),
+			}),
+			budget: { remainingUsd: () => 1, charge: () => {} },
+			timeoutMs: 500,
+			ttlMs: 3_600_000,
+			minSimilarity: 0.8,
+			minMatch: 0.85,
+			maxCandidates: 3,
+		});
+	await make("one").store(body(Q), msg(), "r1");
+	const r = await make("two").lookup(body(Q));
+	expect(r?.hit).toBeNull();
+	expect(r?.lookup).toMatchObject({ outcome: "miss", bestSimilarity: null });
+	store.close();
+});
