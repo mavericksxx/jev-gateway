@@ -73,7 +73,7 @@ export function translateParams(
 		}
 	}
 
-	// Sonnet/Opus/Fable reject forced tool use alongside the translated thinking.
+	// Sonnet/Opus/Fable reject forced tool_choice (any/tool).
 	const tc = out.tool_choice as Record<string, unknown> | undefined;
 	if (!haiku && tc && (tc.type === "any" || tc.type === "tool")) {
 		out.tool_choice =
