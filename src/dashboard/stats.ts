@@ -43,6 +43,13 @@ export function computeStats(
 	const mix = new Map<Tier, { requests: number; costUsd: number }>(
 		ALL_TIERS.map((t) => [t, { requests: 0, costUsd: 0 }]),
 	);
+	const cascade = {
+		attempted: 0,
+		accepted: 0,
+		escalated: 0,
+		wastedUsd: 0,
+		jevCostUsd: 0,
+	};
 	const reasons = { jev: 0, "low-confidence": 0, sticky: 0, fallback: 0 };
 	let min = Number.POSITIVE_INFINITY;
 	let max = Number.NEGATIVE_INFINITY;
@@ -55,12 +62,21 @@ export function computeStats(
 		if (r.status >= 400) errors++;
 		min = Math.min(min, r.startedAt);
 		max = Math.max(max, r.startedAt);
+		if (r.cascade) {
+			cascade.attempted++;
+			if (r.cascade.accepted) cascade.accepted++;
+			else cascade.escalated++;
+			cascade.wastedUsd += r.cascade.wastedCostUsd;
+			cascade.jevCostUsd += r.cascade.jevCostUsd ?? 0;
+			jevSpent += r.cascade.jevCostUsd ?? 0;
+		}
 		if (!r.route) continue;
 		routedRequests++;
 		jevSpent += r.route.jevCostUsd ?? 0;
 		if (r.route.jevLatencyMs !== null) latencies.push(r.route.jevLatencyMs);
 		reasons[r.route.reason]++;
-		const m = mix.get(r.route.tier);
+		const served = r.cascade?.accepted ? r.cascade.firstTier : r.route.tier;
+		const m = mix.get(served);
 		if (m) {
 			m.requests++;
 			m.costUsd += cost;
@@ -121,14 +137,7 @@ export function computeStats(
 			requests: mix.get(tier)?.requests ?? 0,
 			costUsd: mix.get(tier)?.costUsd ?? 0,
 		})),
-		// Placeholder until the cascade stats land in Phase 4.
-		cascade: {
-			attempted: 0,
-			accepted: 0,
-			escalated: 0,
-			wastedUsd: 0,
-			jevCostUsd: 0,
-		},
+		cascade,
 		reasons,
 		bucketMs,
 		timeline,

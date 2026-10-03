@@ -25,7 +25,7 @@
 			"error": "Jev timed out after 1500ms"
 		},
 		"costUsd": 0.085405,
-		"baselineCostUsd": 0.085405
+		"baselineCostUsd": 0.068324
 	},
 	{
 		"id": "ed8c635f-b079-403f-9dd3-f7f4e88aac65",
@@ -36,10 +36,10 @@
 		"status": 200,
 		"error": null,
 		"requestedModel": "auto",
-		"upstreamModel": "claude-sonnet-5-5",
+		"upstreamModel": "claude-haiku-4-5",
 		"usage": {
 			"input_tokens": 1774,
-			"output_tokens": 2275,
+			"output_tokens": 758,
 			"cache_creation_input_tokens": 0,
 			"cache_read_input_tokens": 0
 		},
@@ -60,8 +60,19 @@
 			"jevCostUsd": 0.0000744,
 			"error": null
 		},
-		"costUsd": 0.039447,
-		"baselineCostUsd": 0.065745
+		"costUsd": 0.005564,
+		"cascade": {
+			"firstTier": "haiku",
+			"escalationTier": "sonnet-high",
+			"jevLatencyMs": 300,
+			"jevCostUsd": 0.00003,
+			"accepted": true,
+			"passProbability": 0.93,
+			"wastedUsage": null,
+			"wastedCostUsd": 0,
+			"error": null
+		},
+		"baselineCostUsd": 0.022256
 	},
 	{
 		"id": "c8a32ca1-6a3c-433b-b273-a1d781cc6da8",
@@ -72,10 +83,10 @@
 		"status": 200,
 		"error": null,
 		"requestedModel": "auto",
-		"upstreamModel": "claude-sonnet-5-5",
+		"upstreamModel": "claude-haiku-4-5",
 		"usage": {
 			"input_tokens": 7027,
-			"output_tokens": 1771,
+			"output_tokens": 590,
 			"cache_creation_input_tokens": 0,
 			"cache_read_input_tokens": 0
 		},
@@ -96,8 +107,19 @@
 			"jevCostUsd": 0.0000882,
 			"error": null
 		},
-		"costUsd": 0.047646,
-		"baselineCostUsd": 0.07941
+		"costUsd": 0.009977,
+		"cascade": {
+			"firstTier": "haiku",
+			"escalationTier": "sonnet-low",
+			"jevLatencyMs": 340,
+			"jevCostUsd": 0.00003,
+			"accepted": true,
+			"passProbability": 0.81,
+			"wastedUsage": null,
+			"wastedCostUsd": 0,
+			"error": null
+		},
+		"baselineCostUsd": 0.039908
 	},
 	{
 		"id": "d6211341-a8a3-4dc0-9b2b-27c91223b592",
@@ -158,10 +180,10 @@
 		"status": 200,
 		"error": null,
 		"requestedModel": "auto",
-		"upstreamModel": "claude-sonnet-5-5",
+		"upstreamModel": "claude-haiku-4-5",
 		"usage": {
 			"input_tokens": 6352,
-			"output_tokens": 1967,
+			"output_tokens": 656,
 			"cache_creation_input_tokens": 0,
 			"cache_read_input_tokens": 0
 		},
@@ -182,8 +204,19 @@
 			"jevCostUsd": 0.0000798,
 			"error": null
 		},
-		"costUsd": 0.048561,
-		"baselineCostUsd": 0.080935
+		"costUsd": 0.009632,
+		"cascade": {
+			"firstTier": "haiku",
+			"escalationTier": "sonnet-low",
+			"jevLatencyMs": 380,
+			"jevCostUsd": 0.00003,
+			"accepted": true,
+			"passProbability": 0.88,
+			"wastedUsage": null,
+			"wastedCostUsd": 0,
+			"error": null
+		},
+		"baselineCostUsd": 0.038528
 	},
 	{
 		"id": "76e9a281-ce53-4d70-a8ed-e932eb3f45bc",
@@ -219,7 +252,7 @@
 			"error": null
 		},
 		"costUsd": 0.026541,
-		"baselineCostUsd": 0.044235
+		"baselineCostUsd": 0.035388
 	},
 	{
 		"id": "2791ccf5-9b98-43d5-a58b-a0da29132295",
@@ -255,7 +288,7 @@
 			"error": null
 		},
 		"costUsd": 0.009088,
-		"baselineCostUsd": 0.04544
+		"baselineCostUsd": 0.036352
 	},
 	{
 		"id": "ed948e7f-1ac9-47d8-95cb-cf3b829958bf",
@@ -290,8 +323,24 @@
 			"jevCostUsd": 0.0001173,
 			"error": null
 		},
-		"costUsd": 0.035673,
-		"baselineCostUsd": 0.059455
+		"costUsd": 0.028208,
+		"cascade": {
+			"firstTier": "haiku",
+			"escalationTier": "sonnet-low",
+			"jevLatencyMs": 420,
+			"jevCostUsd": 0.00003,
+			"accepted": false,
+			"passProbability": 0.32,
+			"wastedUsage": {
+				"input_tokens": 696,
+				"output_tokens": 746,
+				"cache_creation_input_tokens": 0,
+				"cache_read_input_tokens": 0
+			},
+			"wastedCostUsd": 0.004426,
+			"error": null
+		},
+		"baselineCostUsd": 0.047564
 	},
 	{
 		"id": "07548e7d-8819-4bca-86da-fba4a9eaf5a5",
@@ -326,8 +375,24 @@
 			"jevCostUsd": 0.0000852,
 			"error": null
 		},
-		"costUsd": 0.050955,
-		"baselineCostUsd": 0.084925
+		"costUsd": 0.044945,
+		"cascade": {
+			"firstTier": "haiku",
+			"escalationTier": "sonnet-low",
+			"jevLatencyMs": 460,
+			"jevCostUsd": 0.00003,
+			"accepted": false,
+			"passProbability": null,
+			"wastedUsage": {
+				"input_tokens": 7970,
+				"output_tokens": 601,
+				"cache_creation_input_tokens": 0,
+				"cache_read_input_tokens": 0
+			},
+			"wastedCostUsd": 0.010975,
+			"error": "stop_reason max_tokens"
+		},
+		"baselineCostUsd": 0.06794
 	},
 	{
 		"id": "e113a9a8-7f59-4c29-aef7-65097c42e245",
@@ -363,7 +428,7 @@
 			"error": null
 		},
 		"costUsd": 0.041475,
-		"baselineCostUsd": 0.069125
+		"baselineCostUsd": 0.0553
 	},
 	{
 		"id": "50973802-6d43-4e2d-bbfa-0be42ef73661",
@@ -399,7 +464,7 @@
 			"error": null
 		},
 		"costUsd": 0.049584,
-		"baselineCostUsd": 0.08264
+		"baselineCostUsd": 0.066112
 	},
 	{
 		"id": "3e855be0-7893-4a48-aa93-44e2dba1853b",
@@ -435,7 +500,7 @@
 			"error": null
 		},
 		"costUsd": 0.014582,
-		"baselineCostUsd": 0.07291
+		"baselineCostUsd": 0.058328
 	},
 	{
 		"id": "30c2219e-6f6e-40ad-ba33-93e84b7329d4",
@@ -502,7 +567,7 @@
 			"error": null
 		},
 		"costUsd": 0.030384,
-		"baselineCostUsd": 0.05064
+		"baselineCostUsd": 0.040512
 	},
 	{
 		"id": "c3e5bbd0-48a3-4056-a96c-7cddc30a5946",
@@ -538,7 +603,7 @@
 			"error": null
 		},
 		"costUsd": 0.027582,
-		"baselineCostUsd": 0.04597
+		"baselineCostUsd": 0.036776
 	},
 	{
 		"id": "f8008122-56c6-46ed-89d8-e5e9d4b02b58",
@@ -574,7 +639,7 @@
 			"error": null
 		},
 		"costUsd": 0.034803,
-		"baselineCostUsd": 0.058005
+		"baselineCostUsd": 0.046404
 	},
 	{
 		"id": "3c7368a6-6d13-4400-933c-147142678ee5",
@@ -610,21 +675,7 @@
 			"error": null
 		},
 		"costUsd": 0.032355,
-		"baselineCostUsd": 0.032355
-	},
-	{
-		"id": "3a9ed850-6c97-4b62-b9b6-f28baf435780",
-		"startedAt": 1779997265000,
-		"latencyMs": 140,
-		"endpoint": "count_tokens",
-		"requestedModel": "claude-opus-5-5",
-		"upstreamModel": "claude-opus-5-5",
-		"stream": false,
-		"status": 200,
-		"usage": null,
-		"error": null,
-		"costUsd": null,
-		"baselineCostUsd": null
+		"baselineCostUsd": 0.025884
 	},
 	{
 		"id": "c5f72692-30ae-46dc-b5b7-b4239e648a01",
@@ -679,7 +730,7 @@
 			"error": null
 		},
 		"costUsd": 0.022386,
-		"baselineCostUsd": 0.03731
+		"baselineCostUsd": 0.029848
 	},
 	{
 		"id": "c65c0e33-c40e-473b-bbe3-f3273681986f",
@@ -734,7 +785,7 @@
 			"error": null
 		},
 		"costUsd": 0.015121,
-		"baselineCostUsd": 0.075605
+		"baselineCostUsd": 0.060484
 	},
 	{
 		"id": "72a01cc7-d479-4b6f-820a-df0bbd3d8b07",
@@ -770,7 +821,7 @@
 			"error": null
 		},
 		"costUsd": 0.020627,
-		"baselineCostUsd": 0.103135
+		"baselineCostUsd": 0.082508
 	},
 	{
 		"id": "4c64dcf1-e912-4af1-b2d8-1c8c7f5b1ac2",
@@ -806,7 +857,7 @@
 			"error": null
 		},
 		"costUsd": 0.031908,
-		"baselineCostUsd": 0.05318
+		"baselineCostUsd": 0.042544
 	},
 	{
 		"id": "34e80b88-624e-4268-baeb-dd61c2096f9f",
@@ -842,7 +893,7 @@
 			"error": null
 		},
 		"costUsd": 0.010614,
-		"baselineCostUsd": 0.01769
+		"baselineCostUsd": 0.014152
 	},
 	{
 		"id": "c091d705-9824-4530-a504-b7c5f5c550a9",
@@ -878,7 +929,7 @@
 			"error": null
 		},
 		"costUsd": 0.089225,
-		"baselineCostUsd": 0.089225
+		"baselineCostUsd": 0.07138
 	},
 	{
 		"id": "8a210c90-ad33-43bb-ae13-4302767f5217",
@@ -933,7 +984,7 @@
 			"error": null
 		},
 		"costUsd": 0.017334,
-		"baselineCostUsd": 0.02889
+		"baselineCostUsd": 0.023112
 	},
 	{
 		"id": "80819a32-cfa6-4648-8b98-4e43c08ab221",
@@ -988,7 +1039,7 @@
 			"error": null
 		},
 		"costUsd": 0.032295,
-		"baselineCostUsd": 0.053825
+		"baselineCostUsd": 0.04306
 	},
 	{
 		"id": "34d8ede5-ab7f-4f1c-8fc4-eb6ef0c0df61",
@@ -1016,7 +1067,7 @@
 			"error": "Jev timed out after 1500ms"
 		},
 		"costUsd": 0.017055,
-		"baselineCostUsd": 0.085275
+		"baselineCostUsd": 0.06822
 	},
 	{
 		"id": "a45a83fc-7f37-40cd-b79c-3bee76fdada2",
@@ -1052,7 +1103,7 @@
 			"error": null
 		},
 		"costUsd": 0.007027,
-		"baselineCostUsd": 0.035135
+		"baselineCostUsd": 0.028108
 	},
 	{
 		"id": "fd4b65c9-6964-41d4-87c7-36a6a2ccd06d",
@@ -1107,7 +1158,7 @@
 			"error": null
 		},
 		"costUsd": 0.06226,
-		"baselineCostUsd": 0.06226
+		"baselineCostUsd": 0.049808
 	},
 	{
 		"id": "5dba76e1-3332-4b5a-9ba1-b0392faa3ed8",
@@ -1143,7 +1194,7 @@
 			"error": null
 		},
 		"costUsd": 0.030216,
-		"baselineCostUsd": 0.05036
+		"baselineCostUsd": 0.040288
 	},
 	{
 		"id": "984d8a58-a5f4-4909-924e-5a7647a3ac38",
@@ -1271,6 +1322,6 @@
 			"error": null
 		},
 		"costUsd": 0.053695,
-		"baselineCostUsd": 0.053695
+		"baselineCostUsd": 0.042956
 	}
 ]

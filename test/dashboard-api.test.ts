@@ -133,6 +133,12 @@ test("seed-demo seeds once and refuses a second run", () => {
 		expect(stats.totals.savedUsd).toBeGreaterThan(0);
 		expect(stats.tierMix).toHaveLength(7);
 		expect(stats.timeline.length).toBeGreaterThan(0);
+		expect(stats.cascade.attempted).toBeGreaterThan(0);
+		for (const r of rows) {
+			if (r.route?.reason === "jev") {
+				expect(r.route.confidence ?? 1).toBeGreaterThanOrEqual(0.5);
+			}
+		}
 		const again = run();
 		expect(again.exitCode).not.toBe(0);
 		expect(again.stderr.toString()).toContain("already exists");
