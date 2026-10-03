@@ -7,7 +7,7 @@ import {
 import { costUsd } from "../src/pricing";
 import { ALL_TIERS, TIERS, type Tier } from "../src/routing/tiers";
 import type { StoredRequest } from "../src/store/db";
-import type { RouteDecision } from "../src/types";
+import type { CascadeAttempt, RouteDecision } from "../src/types";
 
 const usage = {
 	input_tokens: 1000,
@@ -183,4 +183,50 @@ test("withBaseline adds the field and keeps order", () => {
 	expect(out.map((r) => r.id)).toEqual(["a", "b"]);
 	expect(out[0]?.baselineCostUsd).toBe(opusCost);
 	expect(out[1]?.baselineCostUsd).toBeNull();
+});
+
+const casc = (over: Partial<CascadeAttempt> = {}): CascadeAttempt => ({
+	firstTier: "haiku",
+	escalationTier: "opus-high",
+	accepted: true,
+	passProbability: 0.9,
+	jevLatencyMs: 300,
+	jevCostUsd: 0.00003,
+	wastedUsage: null,
+	wastedCostUsd: 0,
+	error: null,
+	...over,
+});
+
+test("cascade figures, serving-tier mix and Jev spend", () => {
+	const s = computeStats(
+		[
+			row({ route: route("opus-high"), cascade: casc() }),
+			row({
+				route: route("opus-high"),
+				cascade: casc({
+					accepted: false,
+					wastedUsage: usage,
+					wastedCostUsd: 0.25,
+				}),
+			}),
+			row(),
+		],
+		opts,
+	);
+	expect(s.cascade.attempted).toBe(2);
+	expect(s.cascade.accepted).toBe(1);
+	expect(s.cascade.escalated).toBe(1);
+	expect(s.cascade.wastedUsd).toBeCloseTo(0.25);
+	expect(s.cascade.jevCostUsd).toBeCloseTo(0.00006);
+	expect(s.tierMix.find((t) => t.tier === "haiku")?.requests).toBe(2);
+	expect(s.tierMix.find((t) => t.tier === "opus-high")?.requests).toBe(1);
+	expect(s.totals.jevSpentUsd).toBeCloseTo(3 * 0.00003 + 2 * 0.00003);
+	expect(computeStats([row()], opts).cascade).toEqual({
+		attempted: 0,
+		accepted: 0,
+		escalated: 0,
+		wastedUsd: 0,
+		jevCostUsd: 0,
+	});
 });

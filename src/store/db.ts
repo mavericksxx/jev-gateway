@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import type { RequestRecord, RouteDecision } from "../types";
+import type { CascadeAttempt, RequestRecord, RouteDecision } from "../types";
 
 export interface StoredRequest extends RequestRecord {
 	costUsd: number | null;
@@ -36,6 +36,15 @@ interface Row {
 	jev_latency_ms: number | null;
 	jev_cost_usd: number | null;
 	route_error: string | null;
+	cascade_first_tier: CascadeAttempt["firstTier"] | null;
+	cascade_escalation_tier: CascadeAttempt["escalationTier"] | null;
+	cascade_accepted: number | null;
+	cascade_pass_probability: number | null;
+	cascade_jev_latency_ms: number | null;
+	cascade_jev_cost_usd: number | null;
+	cascade_wasted_usage: string | null;
+	cascade_wasted_cost_usd: number | null;
+	cascade_error: string | null;
 }
 
 const ROUTE_COLUMNS: Record<string, string> = {
@@ -46,6 +55,15 @@ const ROUTE_COLUMNS: Record<string, string> = {
 	jev_latency_ms: "INTEGER",
 	jev_cost_usd: "REAL",
 	route_error: "TEXT",
+	cascade_first_tier: "TEXT",
+	cascade_escalation_tier: "TEXT",
+	cascade_accepted: "INTEGER",
+	cascade_pass_probability: "REAL",
+	cascade_jev_latency_ms: "INTEGER",
+	cascade_jev_cost_usd: "REAL",
+	cascade_wasted_usage: "TEXT",
+	cascade_wasted_cost_usd: "REAL",
+	cascade_error: "TEXT",
 };
 
 /** Opens (and creates if needed) the database. Tests pass ":memory:". */
@@ -88,17 +106,23 @@ export function createStore(path: string): Store {
 			stream, status, input_tokens, output_tokens, cache_creation_input_tokens,
 			cache_read_input_tokens, error, cost_usd,
 			route_tier, route_reason, route_confidence, route_probabilities,
-			jev_latency_ms, jev_cost_usd, route_error
+			jev_latency_ms, jev_cost_usd, route_error,
+			cascade_first_tier, cascade_escalation_tier, cascade_accepted,
+			cascade_pass_probability, cascade_jev_latency_ms, cascade_jev_cost_usd,
+			cascade_wasted_usage, cascade_wasted_cost_usd, cascade_error
 		) VALUES (
 			$id, $started_at, $latency_ms, $endpoint, $requested_model, $upstream_model,
 			$stream, $status, $input_tokens, $output_tokens, $cache_creation_input_tokens,
 			$cache_read_input_tokens, $error, $cost_usd,
 			$route_tier, $route_reason, $route_confidence, $route_probabilities,
-			$jev_latency_ms, $jev_cost_usd, $route_error
+			$jev_latency_ms, $jev_cost_usd, $route_error,
+			$cascade_first_tier, $cascade_escalation_tier, $cascade_accepted,
+			$cascade_pass_probability, $cascade_jev_latency_ms, $cascade_jev_cost_usd,
+			$cascade_wasted_usage, $cascade_wasted_cost_usd, $cascade_error
 		)`,
 	);
 	const spentStmt = db.query<{ total: number | null }, []>(
-		"SELECT SUM(jev_cost_usd) AS total FROM requests",
+		"SELECT COALESCE(SUM(jev_cost_usd), 0) + COALESCE(SUM(cascade_jev_cost_usd), 0) AS total FROM requests",
 	);
 	const recentStmt = db.query<Row, [number]>(
 		"SELECT * FROM requests ORDER BY started_at DESC, rowid DESC LIMIT ?",
@@ -131,6 +155,17 @@ export function createStore(path: string): Store {
 				$jev_latency_ms: r.route?.jevLatencyMs ?? null,
 				$jev_cost_usd: r.route?.jevCostUsd ?? null,
 				$route_error: r.route?.error ?? null,
+				$cascade_first_tier: r.cascade?.firstTier ?? null,
+				$cascade_escalation_tier: r.cascade?.escalationTier ?? null,
+				$cascade_accepted: r.cascade ? (r.cascade.accepted ? 1 : 0) : null,
+				$cascade_pass_probability: r.cascade?.passProbability ?? null,
+				$cascade_jev_latency_ms: r.cascade?.jevLatencyMs ?? null,
+				$cascade_jev_cost_usd: r.cascade?.jevCostUsd ?? null,
+				$cascade_wasted_usage: r.cascade?.wastedUsage
+					? JSON.stringify(r.cascade.wastedUsage)
+					: null,
+				$cascade_wasted_cost_usd: r.cascade?.wastedCostUsd ?? null,
+				$cascade_error: r.cascade?.error ?? null,
 			});
 		},
 		recent(limit) {
@@ -167,6 +202,24 @@ export function createStore(path: string): Store {
 								jevLatencyMs: row.jev_latency_ms,
 								jevCostUsd: row.jev_cost_usd,
 								error: row.route_error,
+							},
+						}
+					: {}),
+				...(row.cascade_first_tier !== null
+					? {
+							cascade: {
+								firstTier: row.cascade_first_tier,
+								escalationTier:
+									row.cascade_escalation_tier ?? row.cascade_first_tier,
+								accepted: row.cascade_accepted === 1,
+								passProbability: row.cascade_pass_probability,
+								jevLatencyMs: row.cascade_jev_latency_ms,
+								jevCostUsd: row.cascade_jev_cost_usd,
+								wastedUsage: row.cascade_wasted_usage
+									? JSON.parse(row.cascade_wasted_usage)
+									: null,
+								wastedCostUsd: row.cascade_wasted_cost_usd ?? 0,
+								error: row.cascade_error,
 							},
 						}
 					: {}),

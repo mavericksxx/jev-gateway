@@ -123,3 +123,116 @@ test("opening a Phase 1 database adds route columns and keeps rows", () => {
 		rmSync(dir, { recursive: true, force: true });
 	}
 });
+
+const wastedUsage = {
+	input_tokens: 100,
+	output_tokens: 30,
+	cache_creation_input_tokens: 0,
+	cache_read_input_tokens: 5,
+};
+const cascadeBase = {
+	firstTier: "haiku",
+	escalationTier: "sonnet-low",
+	jevLatencyMs: 300,
+	jevCostUsd: 0.00003,
+	error: null,
+} as const;
+
+test("cascade attempts round-trip (accepted and escalated)", () => {
+	const store = createStore(":memory:");
+	const accepted: RequestRecord = {
+		...routed,
+		id: "c1",
+		startedAt: 4000,
+		cascade: {
+			...cascadeBase,
+			accepted: true,
+			passProbability: 0.9,
+			wastedUsage: null,
+			wastedCostUsd: 0,
+		},
+	};
+	const escalated: RequestRecord = {
+		...routed,
+		id: "c2",
+		startedAt: 5000,
+		cascade: {
+			...cascadeBase,
+			accepted: false,
+			passProbability: null,
+			wastedUsage,
+			wastedCostUsd: 0.0004,
+			error: "stop_reason max_tokens",
+		},
+	};
+	store.insert(accepted, 0.1);
+	store.insert(escalated, 0.2);
+	const plain = { ...routed, id: "p", startedAt: 6000 };
+	store.insert(plain, 0.3);
+	const rows = store.recent(10);
+	expect(rows[0]).toEqual({ ...plain, costUsd: 0.3 });
+	expect(rows[0]).not.toHaveProperty("cascade");
+	expect(rows[1]).toEqual({ ...escalated, costUsd: 0.2 });
+	expect(rows[2]).toEqual({ ...accepted, costUsd: 0.1 });
+	store.close();
+});
+
+test("jevSpentUsd includes cascade judge cost", () => {
+	const store = createStore(":memory:");
+	store.insert(routed, null);
+	store.insert(
+		{
+			...a,
+			id: "c",
+			cascade: {
+				...cascadeBase,
+				accepted: true,
+				passProbability: 0.9,
+				wastedUsage: null,
+				wastedCostUsd: 0,
+			},
+		},
+		null,
+	);
+	expect(store.jevSpentUsd()).toBeCloseTo(0.002 + 0.00003);
+	store.close();
+});
+
+test("opening a Phase 2 database adds cascade columns and keeps rows", () => {
+	const dir = mkdtempSync(join(tmpdir(), "jev-store-"));
+	const path = join(dir, "p2.db");
+	try {
+		const old = new Database(path);
+		old.run(`CREATE TABLE requests (
+			id TEXT PRIMARY KEY, started_at INTEGER NOT NULL, latency_ms INTEGER NOT NULL,
+			endpoint TEXT NOT NULL, requested_model TEXT NOT NULL, upstream_model TEXT NOT NULL,
+			stream INTEGER NOT NULL, status INTEGER NOT NULL, input_tokens INTEGER,
+			output_tokens INTEGER, cache_creation_input_tokens INTEGER,
+			cache_read_input_tokens INTEGER, error TEXT, cost_usd REAL,
+			route_tier TEXT, route_reason TEXT, route_confidence REAL, route_probabilities TEXT,
+			jev_latency_ms INTEGER, jev_cost_usd REAL, route_error TEXT
+		)`);
+		old.run(
+			"INSERT INTO requests (id, started_at, latency_ms, endpoint, requested_model, upstream_model, stream, status, cost_usd, jev_cost_usd) VALUES ('o',1,2,'messages','m','m',0,200,0.5,0.01)",
+		);
+		old.close();
+		const store = createStore(path);
+		const cascade = {
+			...cascadeBase,
+			accepted: true,
+			passProbability: 0.8,
+			wastedUsage: null,
+			wastedCostUsd: 0,
+		};
+		store.insert({ ...a, id: "n", startedAt: 2, cascade }, null);
+		const rows = store.recent(10);
+		expect(rows).toHaveLength(2);
+		expect(rows[1]).toMatchObject({ id: "o", costUsd: 0.5 });
+		expect(rows[1]).not.toHaveProperty("cascade");
+		expect(rows[0]?.cascade).toEqual(cascade);
+		expect(store.jevSpentUsd()).toBeCloseTo(0.01003);
+		store.close();
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});

@@ -103,6 +103,8 @@ tr.detail td { white-space: normal; background: var(--bg); }
 .probs .chosen-name { font-weight: 650; color: var(--ink); }
 .meta { margin-top: 8px; color: var(--ink-2); font-size: 12px; overflow-wrap: anywhere; }
 .meta code { font-family: var(--mono); }
+.badge { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid var(--border); border-radius: 9px; font-size: 11px; color: var(--ink-2); }
+.badge.ok { color: var(--good); border-color: var(--good); }
 .err-text { color: var(--bad); }
 </style>
 </head>
@@ -179,6 +181,25 @@ function axisLabel(t, bucketMs) {
 	return clock(t, false);
 }
 
+const MIN = 60000, HR = 3600000, DAY = 86400000;
+const TICK_STEPS = [1, 5, 10, 15, 30].map((m) => m * MIN).concat([1, 2, 3, 6, 12].map((h) => h * HR), [1, 2, 7].map((d) => d * DAY));
+// Evenly spaced ticks at a nice step, at most one per ~90px of plot width.
+function niceTicks(t0, t1, plotPx) {
+	const maxTicks = Math.max(1, Math.floor(plotPx / 90));
+	const span = t1 - t0;
+	const step = TICK_STEPS.find((st) => Math.floor(span / st) + 1 <= maxTicks) || TICK_STEPS[TICK_STEPS.length - 1];
+	const off = new Date(t0).getTimezoneOffset() * MIN; // align to local time
+	const out = [];
+	for (let t = Math.ceil((t0 - off) / step) * step + off; t <= t1; t += step) {
+		const d = new Date(t);
+		const day = d.toLocaleDateString([], { month: "short", day: "numeric" });
+		const label = span <= DAY ? clock(t, false) : step >= DAY ? day : `${day}, ${clock(t, false)}`;
+		out.push({ t, label });
+	}
+	if (!out.length) out.push({ t: t0, label: span <= DAY ? clock(t0, false) : new Date(t0).toLocaleDateString([], { month: "short", day: "numeric" }) });
+	return out;
+}
+
 // ---------- DOM helpers (textContent only) ----------
 function el(tag, props, ...kids) {
 	const n = document.createElement(tag);
@@ -211,6 +232,11 @@ function kpi(label, value, detail, extra, valueClass) {
 		extra,
 		el("div", { class: "detail", text: detail }));
 }
+function cascadeKpi(c) {
+	if (!c.attempted) return kpi("Cheap-first", "not used", "Enable per request with x-gateway-cascade: on");
+	return kpi("Cheap-first", `${int(c.accepted)} of ${int(c.attempted)} kept (${pct(c.accepted / c.attempted)})`,
+		`${int(c.escalated)} escalated · ${usd(c.wastedUsd)} wasted`);
+}
 function renderKpis(s) {
 	const t = s.totals;
 	const frac = t.jevBudgetUsd > 0 ? t.jevSpentUsd / t.jevBudgetUsd : 0;
@@ -222,6 +248,7 @@ function renderKpis(s) {
 		kpi("Actual vs baseline", `${usd(t.actualCostUsd)}`, `baseline ${usd(t.baselineCostUsd)}`),
 		kpi("Net saved after Jev", usd(t.netSavedUsd), `Jev spent ${usd(t.jevSpentUsd)}`, null, t.netSavedUsd > 0 ? "good" : ""),
 		kpi("Requests", `${int(t.routedRequests)} routed`, `${int(t.requests)} total · ${int(t.errors)} errors`),
+		cascadeKpi(s.cascade),
 		kpi("Jev latency", `${ms(s.jevLatencyMs.p50)} p50`, `${ms(s.jevLatencyMs.p95)} p95`),
 		kpi("Jev spend vs budget", `${usd(t.jevSpentUsd)}`, `of ${usd(t.jevBudgetUsd)} · ${pct(frac)}`, meter));
 }
@@ -252,10 +279,10 @@ function renderTimeline(s) {
 		g.append(svg("line", { x1: L, x2: W - R, y1: y, y2: y, stroke: "var(--grid)", "stroke-width": 1 }));
 		g.append(svg("text", { x: L - 6, y: y + 4, "text-anchor": "end" }, usd(v)));
 	}
-	const ticks = Math.min(5, pts.length);
-	for (let i = 0; i < ticks; i++) {
-		const p = pts[ticks === 1 ? 0 : Math.round((i * (pts.length - 1)) / (ticks - 1))];
-		g.append(svg("text", { x: X(p.t), y: H - 8, "text-anchor": i === 0 ? "start" : i === ticks - 1 ? "end" : "middle" }, axisLabel(p.t, s.bucketMs)));
+	const plotPx = (box.clientWidth || W) * ((W - L - R) / W);
+	for (const tk of niceTicks(t0, t1, plotPx)) {
+		const x = X(tk.t);
+		g.append(svg("text", { x, y: H - 8, "text-anchor": x < L + 36 ? "start" : x > W - R - 36 ? "end" : "middle" }, tk.label));
 	}
 	const line = (k) => pts.map((p, i) => `${i ? "L" : "M"}${X(p.t).toFixed(1)},${Y(p[k]).toFixed(1)}`).join("");
 	const area = `${line("b")}${pts.slice().reverse().map((p) => `L${X(p.t).toFixed(1)},${Y(p.a).toFixed(1)}`).join("")}Z`;
@@ -341,8 +368,19 @@ function renderReasons(s) {
 
 // ---------- Requests table ----------
 function cell(text, cls) { return el("td", { class: cls || "", text }); }
-function tierCell(tier) {
-	return el("td", {}, el("span", { class: "dot", style: `background:${tierColor(tier)}` }), document.createTextNode(tier));
+function servingTier(r) {
+	return r.cascade?.accepted ? r.cascade.firstTier : r.route.tier;
+}
+function tierCell(r) {
+	const tier = servingTier(r);
+	const td = el("td", {}, el("span", { class: "dot", style: `background:${tierColor(tier)}` }), document.createTextNode(tier));
+	const c = r.cascade;
+	if (c) {
+		td.append(c.accepted
+			? el("span", { class: "badge ok", title: `Cheap-first: the ${c.firstTier} answer was judged good enough and returned instead of ${c.escalationTier}.`, text: "cheap ✓" })
+			: el("span", { class: "badge", title: `Cheap-first: the ${c.firstTier} answer was rejected, so the request was re-run on ${c.escalationTier}.`, text: `↑ from ${c.firstTier}` }));
+	}
+	return td;
 }
 function detailRow(r) {
 	const box = el("div", {});
@@ -368,6 +406,16 @@ function detailRow(r) {
 	meta.append(el("div", {}, document.createTextNode("Request id: "), el("code", { text: r.id })));
 	if (route.jevCostUsd !== null) meta.append(el("div", { text: `Jev cost ${usd(route.jevCostUsd)}` }));
 	box.append(meta);
+	const c = r.cascade;
+	if (c) {
+		const cm = el("div", { class: "meta" }, el("div", { class: "label", text: "Cheap-first" }));
+		cm.append(el("div", { text: `First tier: ${c.firstTier} (${c.accepted ? "kept" : `escalated to ${c.escalationTier}`})` }));
+		cm.append(el("div", { text: `Jev pass probability: ${c.passProbability === null ? "—" : pct(c.passProbability)}` }));
+		cm.append(el("div", { text: `Judge Jev cost ${usd(c.jevCostUsd)} · ${ms(c.jevLatencyMs)}` }));
+		if (c.wastedUsage || c.wastedCostUsd) cm.append(el("div", { text: `Wasted: ${c.wastedUsage ? `${int(c.wastedUsage.input_tokens)} in / ${int(c.wastedUsage.output_tokens)} out tokens, ` : ""}${usd(c.wastedCostUsd)}` }));
+		if (c.error) cm.append(el("div", { class: "err-text", text: `Cheap-first note: ${c.error}` }));
+		box.append(cm);
+	}
 	return el("tr", { class: "detail" }, el("td", { colspan: "13" }, box));
 }
 function renderRequests(rows) {
@@ -396,7 +444,7 @@ function renderRequests(rows) {
 		tr.append(first,
 			cell(clock(r.startedAt, true)),
 			cell(r.requestedModel === r.upstreamModel ? r.requestedModel : `${r.requestedModel} → ${r.upstreamModel}`),
-			route ? tierCell(route.tier) : cell("—"),
+			route ? tierCell(r) : cell("—"),
 			cell(route ? route.reason : "—"),
 			cell(route ? (route.confidence === null ? "—" : route.confidence.toFixed(2)) : "—", "num"),
 			cell(r.usage ? int(r.usage.input_tokens) : "—", "num"),
@@ -460,6 +508,11 @@ async function refresh() {
 refresh();
 setInterval(refresh, 5000);
 setInterval(renderMeta, 1000);
+let resizeRaf = 0;
+window.addEventListener("resize", () => {
+	cancelAnimationFrame(resizeRaf);
+	resizeRaf = requestAnimationFrame(() => { if (state.stats) renderTimeline(state.stats); });
+});
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
 </script>
 </body>

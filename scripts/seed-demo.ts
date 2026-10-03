@@ -2,7 +2,11 @@ import { existsSync } from "node:fs";
 import { costUsd } from "../src/pricing";
 import { ALL_TIERS, TIERS, type Tier } from "../src/routing/tiers";
 import { createStore } from "../src/store/db";
-import type { RequestRecord, RouteDecision } from "../src/types";
+import type {
+	CascadeAttempt,
+	RequestRecord,
+	RouteDecision,
+} from "../src/types";
 
 const path = process.argv[2] ?? "demo.db";
 if (existsSync(path)) {
@@ -44,14 +48,25 @@ function pickTier(): Tier {
 	return "haiku";
 }
 
-function probabilities(chosen: Tier): Record<string, number> {
-	const raw = ALL_TIERS.map((t) =>
-		t === chosen ? between(0.5, 0.9) : between(0, 0.15),
-	);
+/** The chosen tier gets `confidence`; the rest share the remainder. */
+function probabilities(
+	chosen: Tier,
+	confidence: number,
+): Record<string, number> {
+	const raw = ALL_TIERS.map((t) => (t === chosen ? 0 : between(0.05, 1)));
 	const total = raw.reduce((a, b) => a + b, 0);
 	return Object.fromEntries(
-		ALL_TIERS.map((t, i) => [t, (raw[i] ?? 0) / total]),
+		ALL_TIERS.map((t, i) => [
+			t,
+			t === chosen ? confidence : ((raw[i] ?? 0) / total) * (1 - confidence),
+		]),
 	);
+}
+
+/** Router rule: minConfidence 0.5. Jev is mostly very sure (0.85-1.0). */
+function confidenceFor(reason: RouteDecision["reason"]): number {
+	if (reason === "low-confidence") return between(0.3, 0.49);
+	return rand() < 0.8 ? between(0.85, 1) : between(0.6, 0.85);
 }
 
 const store = createStore(path);
@@ -64,7 +79,10 @@ function insert(r: Omit<RequestRecord, "id" | "startedAt">) {
 	const record = { ...r, id: crypto.randomUUID(), startedAt };
 	store.insert(
 		record,
-		record.usage ? costUsd(record.upstreamModel, record.usage) : null,
+		record.usage
+			? (costUsd(record.upstreamModel, record.usage) ?? 0) +
+					(record.cascade?.wastedCostUsd ?? 0)
+			: null,
 	);
 	count++;
 }
@@ -111,16 +129,61 @@ for (let i = 0; i < 300; i++) {
 				error: "Jev request timed out",
 			};
 		} else {
-			const probs = probabilities(tier);
+			const confidence = confidenceFor(reason);
+			const probs = probabilities(tier, confidence);
 			route = {
 				...base,
-				confidence: probs[tier] ?? null,
+				confidence,
 				probabilities: probs,
 				error: null,
 			};
 		}
 	}
-	const upstreamModel = route ? TIERS[route.tier].model : (explicit ?? "");
+	let upstreamModel = route ? TIERS[route.tier].model : (explicit ?? "");
+	let finalUsage = usage;
+	let cascade: CascadeAttempt | undefined;
+	if (
+		route &&
+		!failed &&
+		usage &&
+		TIERS[route.tier].rank > 0 &&
+		rand() < 0.25
+	) {
+		const small = {
+			input_tokens: int(200, 2000),
+			output_tokens: int(50, 400),
+			cache_creation_input_tokens: 0,
+			cache_read_input_tokens: 0,
+		};
+		const base = {
+			firstTier: "haiku" as const,
+			escalationTier: route.tier,
+			jevLatencyMs: int(250, 600),
+			jevCostUsd: 0.00003,
+		};
+		if (rand() < 0.6) {
+			cascade = {
+				...base,
+				accepted: true,
+				passProbability: between(0.7, 0.98),
+				wastedUsage: null,
+				wastedCostUsd: 0,
+				error: null,
+			};
+			finalUsage = small;
+			upstreamModel = TIERS.haiku.model;
+		} else {
+			const noProb = rand() < 0.15;
+			cascade = {
+				...base,
+				accepted: false,
+				passProbability: noProb ? null : between(0.1, 0.69),
+				wastedUsage: small,
+				wastedCostUsd: costUsd("claude-haiku-4-5", small) ?? 0,
+				error: noProb ? "stop_reason max_tokens" : null,
+			};
+		}
+	}
 	insert({
 		latencyMs: int(400, 9000),
 		endpoint: "messages",
@@ -128,9 +191,10 @@ for (let i = 0; i < 300; i++) {
 		upstreamModel,
 		stream: rand() < 0.6,
 		status: failed ? (rand() < 0.5 ? 429 : 500) : 200,
-		usage,
+		usage: finalUsage,
 		error: failed ? "upstream error" : null,
 		...(route ? { route } : {}),
+		...(cascade ? { cascade } : {}),
 	});
 }
 for (let i = 0; i < 10; i++) {

@@ -17,6 +17,7 @@ test("stats has every StatsResponse key", () => {
 		"totals",
 		"jevLatencyMs",
 		"tierMix",
+		"cascade",
 		"reasons",
 		"bucketMs",
 		"timeline",
@@ -40,6 +41,41 @@ test("stats has every StatsResponse key", () => {
 	expect(stats.jevLatencyMs).toHaveProperty("p50");
 	expect(stats.jevLatencyMs).toHaveProperty("p95");
 	expect(stats.baseline.model).toBe(TIERS[stats.baseline.tier].model);
+});
+
+test("cascade block is consistent and rows carry full attempts", () => {
+	for (const k of [
+		"attempted",
+		"accepted",
+		"escalated",
+		"wastedUsd",
+		"jevCostUsd",
+	]) {
+		expect(stats.cascade).toHaveProperty(k);
+	}
+	expect(stats.cascade.attempted).toBeGreaterThan(0);
+	expect(stats.cascade.accepted + stats.cascade.escalated).toBe(
+		stats.cascade.attempted,
+	);
+	const cascaded = requests.filter((r) => r.cascade);
+	expect(cascaded).toHaveLength(stats.cascade.attempted);
+	expect(cascaded.some((r) => r.cascade?.accepted)).toBe(true);
+	expect(cascaded.some((r) => r.cascade && !r.cascade.accepted)).toBe(true);
+	for (const r of cascaded) {
+		for (const k of [
+			"firstTier",
+			"escalationTier",
+			"accepted",
+			"passProbability",
+			"jevLatencyMs",
+			"jevCostUsd",
+			"wastedUsage",
+			"wastedCostUsd",
+			"error",
+		]) {
+			expect(r.cascade).toHaveProperty(k);
+		}
+	}
 });
 
 test("tierMix has 7 tiers in TIERS order", () => {
