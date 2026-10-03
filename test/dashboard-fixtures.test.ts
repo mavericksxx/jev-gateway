@@ -77,8 +77,8 @@ test("totals are internally consistent", () => {
 
 test("requests are newest-first with all fields", () => {
 	for (let i = 1; i < requests.length; i++) {
-		expect(requests[i].startedAt).toBeLessThanOrEqual(
-			requests[i - 1].startedAt,
+		expect(requests[i]?.startedAt ?? 0).toBeLessThanOrEqual(
+			requests[i - 1]?.startedAt ?? 0,
 		);
 	}
 	for (const r of requests) {
