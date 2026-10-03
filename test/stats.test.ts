@@ -7,7 +7,12 @@ import {
 import { costUsd, PRICES } from "../src/pricing";
 import { ALL_TIERS, TIERS, type Tier } from "../src/routing/tiers";
 import type { StoredRequest } from "../src/store/db";
-import type { CascadeAttempt, RouteDecision, ToolTrim } from "../src/types";
+import type {
+	CacheLookup,
+	CascadeAttempt,
+	RouteDecision,
+	ToolTrim,
+} from "../src/types";
 
 const usage = {
 	input_tokens: 1000,
@@ -300,4 +305,78 @@ test("toolTrim stats and jevSpentUsd", () => {
 	expect(s.toolTrim.estimatedSavedUsd).toBeCloseTo((1000 * price) / 1e6, 10);
 	expect(s.toolTrim.jevCostUsd).toBeCloseTo(0.0001, 10);
 	expect(s.totals.jevSpentUsd).toBeCloseTo(0.00003 * 2 + 0.0001, 10);
+});
+
+const lookup = (over: Partial<CacheLookup> = {}): CacheLookup => ({
+	outcome: "hit",
+	candidates: 1,
+	bestSimilarity: 0.9,
+	matchProbability: 0.95,
+	sourceRequestId: "src",
+	jevLatencyMs: 300,
+	jevCostUsd: 0.0001,
+	lookupMs: 310,
+	stored: false,
+	error: null,
+	...over,
+});
+const sonnetCost = costUsd(TIERS["sonnet-low"].model, usage) ?? 0;
+
+test("cache hit baseline: auto uses the baseline model, explicit its own", () => {
+	const auto = row({
+		costUsd: 0,
+		cache: lookup(),
+		upstreamModel: TIERS["sonnet-low"].model,
+	});
+	expect(baselineCostUsd(auto, "opus-medium")).toBeCloseTo(opusCost);
+	const explicit = row({
+		costUsd: 0,
+		route: undefined,
+		requestedModel: TIERS["sonnet-low"].model,
+		upstreamModel: TIERS["sonnet-low"].model,
+		cache: lookup(),
+	});
+	expect(baselineCostUsd(explicit, "opus-medium")).toBeCloseTo(sonnetCost);
+	const unpriced = row({
+		costUsd: 0,
+		route: undefined,
+		requestedModel: "mystery",
+		upstreamModel: "mystery",
+		cache: lookup(),
+	});
+	expect(baselineCostUsd(unpriced, "opus-medium")).toBeNull();
+});
+
+test("cache block, tierMix exclusion and jevSpentUsd", () => {
+	const empty = computeStats([row()], opts);
+	expect(empty.cache).toEqual({
+		lookups: 0,
+		hits: 0,
+		hitRate: null,
+		savedUsd: 0,
+		jevCostUsd: 0,
+	});
+	const s = computeStats(
+		[
+			row({ costUsd: 0, cache: lookup() }),
+			row({ cache: lookup({ outcome: "miss", jevCostUsd: null }) }),
+			row({
+				costUsd: 0,
+				route: undefined,
+				requestedModel: TIERS.haiku.model,
+				cache: lookup({ jevCostUsd: 0.0002 }),
+			}),
+			row(),
+		],
+		opts,
+	);
+	expect(s.cache.lookups).toBe(3);
+	expect(s.cache.hits).toBe(2);
+	expect(s.cache.hitRate).toBeCloseTo(2 / 3);
+	expect(s.cache.savedUsd).toBeCloseTo(opusCost + haikuCost);
+	expect(s.cache.jevCostUsd).toBeCloseTo(0.0003);
+	expect(s.totals.jevSpentUsd).toBeCloseTo(0.00003 * 3 + 0.0003);
+	const haiku = s.tierMix.find((m) => m.tier === "haiku");
+	expect(haiku?.requests).toBe(2);
+	expect(s.totals.routedRequests).toBe(3);
 });

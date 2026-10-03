@@ -10,12 +10,19 @@ export interface StatsOptions {
 	now?: number;
 }
 
-/** Per-row baseline cost: routed + usage → costUsd(baseline model, usage); not routed → row.costUsd; usage null → null. */
+/** Per-row baseline cost: cache hit → cached usage at baseline (auto) or own model; routed + usage → costUsd(baseline model, usage); not routed → row.costUsd; usage null → null. */
 export function baselineCostUsd(
 	row: StoredRequest,
 	baselineTier: Tier,
 ): number | null {
 	if (!row.usage) return null;
+	if (row.cache?.outcome === "hit") {
+		const model =
+			row.requestedModel === "auto"
+				? TIERS[baselineTier].model
+				: row.upstreamModel;
+		return costUsd(model, row.usage);
+	}
 	const base = row.route
 		? costUsd(TIERS[baselineTier].model, row.usage)
 		: row.costUsd;
@@ -72,6 +79,7 @@ export function computeStats(
 		estimatedSavedUsd: 0,
 		jevCostUsd: 0,
 	};
+	const cache = { lookups: 0, hits: 0, savedUsd: 0, jevCostUsd: 0 };
 	let min = Number.POSITIVE_INFINITY;
 	let max = Number.NEGATIVE_INFINITY;
 
@@ -101,11 +109,21 @@ export function computeStats(
 			cascade.jevCostUsd += r.cascade.jevCostUsd ?? 0;
 			jevSpent += r.cascade.jevCostUsd ?? 0;
 		}
+		if (r.cache) {
+			cache.lookups++;
+			cache.jevCostUsd += r.cache.jevCostUsd ?? 0;
+			jevSpent += r.cache.jevCostUsd ?? 0;
+			if (r.cache.outcome === "hit") {
+				cache.hits++;
+				cache.savedUsd += base;
+			}
+		}
 		if (!r.route) continue;
 		routedRequests++;
 		jevSpent += r.route.jevCostUsd ?? 0;
 		if (r.route.jevLatencyMs !== null) latencies.push(r.route.jevLatencyMs);
 		reasons[r.route.reason]++;
+		if (r.cache?.outcome === "hit") continue;
 		const served = r.cascade?.accepted ? r.cascade.firstTier : r.route.tier;
 		const m = mix.get(served);
 		if (m) {
@@ -170,8 +188,10 @@ export function computeStats(
 		})),
 		cascade,
 		toolTrim,
-		// Placeholder until the cache stats land in Phase 6.
-		cache: { lookups: 0, hits: 0, hitRate: null, savedUsd: 0, jevCostUsd: 0 },
+		cache: {
+			...cache,
+			hitRate: cache.lookups ? cache.hits / cache.lookups : null,
+		},
 		reasons,
 		bucketMs,
 		timeline,

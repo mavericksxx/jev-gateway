@@ -19,6 +19,7 @@ test("stats has every StatsResponse key", () => {
 		"tierMix",
 		"cascade",
 		"toolTrim",
+		"cache",
 		"reasons",
 		"bucketMs",
 		"timeline",
@@ -190,5 +191,40 @@ test("toolTrim block is consistent and rows carry full records", () => {
 		expect(r.toolTrim?.kept).toBe(
 			(r.toolTrim?.offered ?? 0) - (r.toolTrim?.removed.length ?? 0),
 		);
+	}
+});
+
+test("cache block is consistent and rows carry full lookups", () => {
+	for (const k of ["lookups", "hits", "hitRate", "savedUsd", "jevCostUsd"]) {
+		expect(stats.cache).toHaveProperty(k);
+	}
+	const cached = requests.filter((r) => r.cache);
+	expect(cached).toHaveLength(stats.cache.lookups);
+	const hits = cached.filter((r) => r.cache?.outcome === "hit");
+	expect(hits).toHaveLength(stats.cache.hits);
+	expect(stats.cache.hitRate).toBeCloseTo(
+		stats.cache.hits / stats.cache.lookups,
+	);
+	expect(hits.some((r) => r.route)).toBe(true);
+	expect(hits.some((r) => !r.route)).toBe(true);
+	expect(cached.some((r) => r.cache?.outcome === "miss")).toBe(true);
+	for (const r of cached) {
+		for (const k of [
+			"outcome",
+			"candidates",
+			"bestSimilarity",
+			"matchProbability",
+			"sourceRequestId",
+			"jevLatencyMs",
+			"jevCostUsd",
+			"lookupMs",
+			"stored",
+			"error",
+		]) {
+			expect(r.cache).toHaveProperty(k);
+		}
+		expect(r).not.toHaveProperty("cascade");
+		expect(r).not.toHaveProperty("toolTrim");
+		if (r.cache?.outcome === "hit") expect(r.costUsd).toBe(0);
 	}
 });

@@ -3,6 +3,7 @@ import { costUsd } from "../src/pricing";
 import { ALL_TIERS, TIERS, type Tier } from "../src/routing/tiers";
 import { createStore } from "../src/store/db";
 import type {
+	CacheLookup,
 	CascadeAttempt,
 	RequestRecord,
 	RouteDecision,
@@ -34,6 +35,11 @@ const int = (lo: number, hi: number) => Math.round(between(lo, hi));
 const trimRand = mulberry32(20261003);
 const trimBetween = (lo: number, hi: number) => lo + trimRand() * (hi - lo);
 const trimInt = (lo: number, hi: number) => Math.round(trimBetween(lo, hi));
+// Separate stream so cache lookups don't shift the other seeded values.
+const cacheRand = mulberry32(20261010);
+const cacheBetween = (lo: number, hi: number) => lo + cacheRand() * (hi - lo);
+const cacheInt = (lo: number, hi: number) => Math.round(cacheBetween(lo, hi));
+
 const TOOL_NAMES = [
 	"github_create_issue",
 	"github_list_prs",
@@ -183,16 +189,70 @@ const now = Date.now();
 const SIX_HOURS = 6 * 3_600_000;
 let count = 0;
 
-function insert(r: Omit<RequestRecord, "id" | "startedAt">) {
+const seededIds: string[] = [];
+
+/** ~35% hits; misses are mostly stored, some with no candidates, some Jev-rejected. */
+function makeCache(): CacheLookup {
+	if (cacheRand() < 0.35) {
+		return {
+			outcome: "hit",
+			candidates: cacheInt(1, 3),
+			bestSimilarity: cacheBetween(0.85, 0.98),
+			matchProbability: cacheBetween(0.86, 0.99),
+			sourceRequestId:
+				seededIds[Math.floor(cacheRand() * seededIds.length)] ?? null,
+			jevLatencyMs: cacheInt(250, 650),
+			jevCostUsd: cacheBetween(0.00003, 0.0001),
+			lookupMs: cacheInt(250, 650),
+			stored: false,
+			error: null,
+		};
+	}
+	const stored = cacheRand() < 0.85;
+	if (cacheRand() < 0.5) {
+		const some = cacheRand() < 0.4;
+		return {
+			outcome: "miss",
+			candidates: some ? cacheInt(1, 3) : 0,
+			bestSimilarity: some ? cacheBetween(0.4, 0.79) : null,
+			matchProbability: null,
+			sourceRequestId: null,
+			jevLatencyMs: null,
+			jevCostUsd: null,
+			lookupMs: cacheInt(5, 40),
+			stored,
+			error: null,
+		};
+	}
+	return {
+		outcome: "miss",
+		candidates: cacheInt(1, 3),
+		bestSimilarity: cacheBetween(0.8, 0.95),
+		matchProbability: cacheBetween(0.1, 0.84),
+		sourceRequestId: null,
+		jevLatencyMs: cacheInt(250, 650),
+		jevCostUsd: cacheBetween(0.00003, 0.0001),
+		lookupMs: cacheInt(250, 650),
+		stored,
+		error: null,
+	};
+}
+
+function insert(
+	r: Omit<RequestRecord, "id" | "startedAt">,
+	costOverride?: number,
+) {
 	const startedAt = now - Math.floor(rand() * SIX_HOURS);
 	const record = { ...r, id: crypto.randomUUID(), startedAt };
 	store.insert(
 		record,
-		record.usage
-			? (costUsd(record.upstreamModel, record.usage) ?? 0) +
+		costOverride ??
+			(record.usage
+				? (costUsd(record.upstreamModel, record.usage) ?? 0) +
 					(record.cascade?.wastedCostUsd ?? 0)
-			: null,
+				: null),
 	);
+	if (record.endpoint === "messages" && record.usage) seededIds.push(record.id);
 	count++;
 }
 
@@ -294,19 +354,30 @@ for (let i = 0; i < 300; i++) {
 			};
 		}
 	}
-	insert({
-		latencyMs: int(400, 9000),
-		endpoint: "messages",
-		requestedModel: routed ? "auto" : upstreamModel,
-		upstreamModel,
-		stream: rand() < 0.6,
-		status: failed ? (rand() < 0.5 ? 429 : 500) : 200,
-		usage: finalUsage,
-		error: failed ? "upstream error" : null,
-		...(route ? { route } : {}),
-		...(cascade ? { cascade } : {}),
-		...(trimRand() < 0.15 ? { toolTrim: makeToolTrim() } : {}),
-	});
+	const toolTrim = trimRand() < 0.15 ? makeToolTrim() : undefined;
+	const cache =
+		!toolTrim && !cascade && !failed && cacheRand() < 0.12
+			? makeCache()
+			: undefined;
+	const hit = cache?.outcome === "hit";
+	const latencyMs = int(400, 9000);
+	insert(
+		{
+			latencyMs: hit ? cache.lookupMs + cacheInt(5, 30) : latencyMs,
+			endpoint: "messages",
+			requestedModel: routed ? "auto" : upstreamModel,
+			upstreamModel,
+			stream: rand() < 0.6,
+			status: failed ? (rand() < 0.5 ? 429 : 500) : 200,
+			usage: finalUsage,
+			error: failed ? "upstream error" : null,
+			...(route ? { route } : {}),
+			...(cascade ? { cascade } : {}),
+			...(toolTrim ? { toolTrim } : {}),
+			...(cache ? { cache } : {}),
+		},
+		hit ? 0 : undefined,
+	);
 }
 for (let i = 0; i < 10; i++) {
 	insert({
