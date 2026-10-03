@@ -144,6 +144,7 @@ for (let i = 0; i < 300; i++) {
 	let cascade: CascadeAttempt | undefined;
 	if (
 		route &&
+		route.reason !== "fallback" && // the server never cascades after a router fallback
 		!failed &&
 		usage &&
 		TIERS[route.tier].rank > 0 &&
