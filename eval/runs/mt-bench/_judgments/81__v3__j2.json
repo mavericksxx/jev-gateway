@@ -1,0 +1,107 @@
+{
+	"win": 0,
+	"bothBad": 0,
+	"acceptable": 1,
+	"baselineAcceptable": 1,
+	"reason": "A gives richer, accurate cultural depth (ʻIolani Palace, Puʻuhonua o Hōnaunau, hula, respectful travel) alongside well-organised attractions and practical tips. B is engaging and adequate but thinner on culture and has small slips: it names three islands yet features Kauai, and cites a restaurant, \"Ken's House of Noodles\", that appears not to exist.",
+	"setupIsA": false,
+	"judge": {
+		"text": "{\"verdict\": \"A\", \"acceptable\": {\"A\": true, \"B\": true}, \"reason\": \"A gives richer, accurate cultural depth (ʻIolani Palace, Puʻuhonua o Hōnaunau, hula, respectful travel) alongside well-organised attractions and practical tips. B is engaging and adequate but thinner on culture and has small slips: it names three islands yet features Kauai, and cites a restaurant, \\\"Ken's House of Noodles\\\", that appears not to exist.\"}",
+		"model": "claude-fable-5-1",
+		"usage": {
+			"input_tokens": 2,
+			"output_tokens": 726,
+			"cache_read_input_tokens": 0,
+			"cache_creation_input_tokens": 5145
+		},
+		"costUsd": 0.13922,
+		"durationMs": 9128,
+		"stopReason": "end_turn",
+		"raw": {
+			"duration_api_ms": 7150,
+			"stop_reason": "end_turn",
+			"session_id": "13e639e6-bc2f-46d0-8485-3e3d3a1e228d",
+			"total_cost_usd": 0.13922,
+			"usage": {
+				"input_tokens": 2,
+				"cache_creation_input_tokens": 5145,
+				"cache_read_input_tokens": 0,
+				"output_tokens": 726,
+				"output_tokens_details": { "thinking_tokens": 558 },
+				"server_tool_use": {
+					"web_search_requests": 0,
+					"web_fetch_requests": 0
+				},
+				"service_tier": "standard",
+				"cache_creation": {
+					"ephemeral_1h_input_tokens": 5145,
+					"ephemeral_5m_input_tokens": 0
+				},
+				"inference_geo": "not_available",
+				"iterations": [
+					{
+						"input_tokens": 2,
+						"output_tokens": 726,
+						"cache_read_input_tokens": 0,
+						"cache_creation_input_tokens": 5145,
+						"cache_creation": {
+							"ephemeral_5m_input_tokens": 0,
+							"ephemeral_1h_input_tokens": 5145
+						},
+						"type": "message"
+					}
+				],
+				"speed": "standard",
+				"fallback_credit": null
+			},
+			"modelUsage": {
+				"claude-fable-5-1": {
+					"inputTokens": 2,
+					"outputTokens": 726,
+					"cacheReadInputTokens": 0,
+					"cacheCreationInputTokens": 5145,
+					"webSearchRequests": 0,
+					"costUSD": 0.13922,
+					"contextWindow": 1000000,
+					"maxOutputTokens": 128000,
+					"thinkingTokens": 558,
+					"canonicalModel": "claude-fable-5-1",
+					"provider": "firstParty",
+					"costBasis": "list"
+				}
+			},
+			"permission_denials": [],
+			"terminal_reason": "completed",
+			"fast_mode_state": "off",
+			"fast_mode_disabled_reason": "sdk_opt_in_required",
+			"subagent_stats": {
+				"spawned": 0,
+				"requested": { "background": 0, "foreground": 0, "unset": 0 },
+				"started_in_background": 0,
+				"max_depth": 0,
+				"spawned_by_subagents": 0,
+				"completed": 0,
+				"failed": 0,
+				"killed": { "parent": 0, "user": 0, "system": 0 },
+				"refused": { "depth_limit": 0, "concurrency_limit": 0, "budget": 0 },
+				"by_type": {}
+			},
+			"is_error": false,
+			"num_turns": 1,
+			"subtype": "success",
+			"api_error_status": null,
+			"result": "{\"verdict\": \"A\", \"acceptable\": {\"A\": true, \"B\": true}, \"reason\": \"A gives richer, accurate cultural depth (ʻIolani Palace, Puʻuhonua o Hōnaunau, hula, respectful travel) alongside well-organised attractions and practical tips. B is engaging and adequate but thinner on culture and has small slips: it names three islands yet features Kauai, and cites a restaurant, \\\"Ken's House of Noodles\\\", that appears not to exist.\"}",
+			"ttft_ms": 5548,
+			"type": "result",
+			"duration_ms": 9128,
+			"uuid": "0bbb20b2-ca83-4265-a69f-f9ab4cf79781",
+			"ttft_stream_ms": 714,
+			"time_to_request_ms": 29,
+			"first_content_frame_ms": 715,
+			"queued_turn_count": 0,
+			"result_index": 0
+		},
+		"attempts": 1
+	},
+	"text": "# Lost in Paradise: My Unforgettable Journey Through Hawaii's Heart and Soul\n\nThere's a moment when you step off the plane in Hawaii when the warm breeze hits your face and you realize that all the pictures and videos couldn't quite capture what you're about to experience. After two weeks island-hopping across Oahu, Maui, and the Big Island, I finally understand why people call Hawaii \"paradise.\" But beyond the postcard beaches, I discovered something deeper—a rich culture that transformed my entire trip.\n\n## **Connecting with Hawaiian Culture**\n\nMy favorite experience wasn't at a resort—it was attending a traditional luau on Maui. But here's the thing: I chose a smaller, family-run venue over the commercialized tourist traps. Chef Kimo taught us how to prepare kalua pork the traditional way, and I learned that every dish tells a story of Hawaii's past.\n\nThe highlight? Watching the hula dancers perform at sunset. Our guide, a local named Nalani, explained that hula isn't just entertainment—it's a language, a way of preserving history and spirituality. Watching the dancers' hands tell stories of the ocean, volcanoes, and aloha gave me genuine chills.\n\n**Pro tip:** Visit the Bishop Museum in Honolulu to understand Hawaiian history before exploring the islands. It provides incredible context for everything you'll see.\n\n## **Must-See Attractions That Stole My Heart**\n\n### **Hawaii Volcanoes National Park** (Big Island)\nHiking through Crater Rim Trail at dawn was surreal. You're literally walking above the Earth's creation—the volcanic landscape is otherworldly and humbling. The park rangers' stories about Pele (the volcano goddess) added spiritual depth to the geological wonder.\n\n### **Na Pali Coast** (Kauai)\nNo camera does this justice. The emerald cliffs plunging into turquoise waters are straight from fantasy films—because, well, they were filming locations! I hiked the Kalalau Trail and camped overnight. Worth every blister.\n\n### **Hanauma Bay** (Oahu)\nIf you only snorkel once in Hawaii, do it here. I floated above coral gardens teeming with tropical fish, sea turtles gliding beneath me. The bay's protected marine sanctuary status means the ecosystem thrives. Arrive early to avoid crowds.\n\n### **Road to Hana** (Maui)\nThis isn't just a drive—it's an experience. Countless waterfalls, black sand beaches, and bamboo forests line this winding coastal road. Stop at random overlooks. Chat with locals. Get delightfully lost.\n\n## **Hidden Gems & Authentic Moments**\n\n- **Sunrise at Haleakalā** (Maui): Watching the sun rise above the clouds at 10,000 feet felt spiritual\n- **Local food markets**: Skip chain restaurants; try plate lunch at Ken's House of Noodles or shave ice at Matsumoto's\n- **Night snorkeling with manta rays** (Big Island): Absolutely magical and ethical when done with responsible operators\n\n## **The Lesson I Learned**\n\nWhat struck me most wasn't the beauty—though it's breathtaking. It was the warmth of the Hawaiian people and their commitment to preserving their culture despite tourism pressures. They welcomed us with genuine aloha while asking us to respect their home.\n\n**Final thought:** Hawaii isn't a vacation destination you simply check off. It's a place that invites you to slow down, listen, and connect. Whether you're an adventure seeker, culture enthusiast, or beach lover, these islands deliver—but only if you venture beyond the resort pools.\n\n*Mahalo, Hawaii. You've forever changed me.* 🌺\n\n---\n\n**Planning a Hawaii trip? Drop your questions in the comments! Where's on your must-visit list?**"
+}

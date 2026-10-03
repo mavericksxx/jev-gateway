@@ -1,0 +1,95 @@
+{
+	"text": "# Software Development Investment Calculation\n\nLet me work through this step by step:\n\n**Year 1:** $8,000\n\n**Year 2:** Half of Year 1 = $8,000 ÷ 2 = $4,000\n\n**Total Investment over 2 years:**\n$8,000 + $4,000 = **$12,000**\n\nThe startup invested a total of **$12,000** in software development over the two years.",
+	"model": "claude-haiku-4-5",
+	"usage": {
+		"input_tokens": 617,
+		"output_tokens": 191,
+		"cache_read_input_tokens": 0,
+		"cache_creation_input_tokens": 0
+	},
+	"costUsd": 0.001572,
+	"durationMs": 3048,
+	"stopReason": "end_turn",
+	"raw": {
+		"duration_api_ms": 1768,
+		"stop_reason": "end_turn",
+		"session_id": "c91f9f37-3917-418f-ace7-4e2e67ff5d5a",
+		"total_cost_usd": 0.001572,
+		"usage": {
+			"input_tokens": 617,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0,
+			"output_tokens": 191,
+			"output_tokens_details": { "thinking_tokens": 79 },
+			"server_tool_use": { "web_search_requests": 0, "web_fetch_requests": 0 },
+			"service_tier": "standard",
+			"cache_creation": {
+				"ephemeral_1h_input_tokens": 0,
+				"ephemeral_5m_input_tokens": 0
+			},
+			"inference_geo": "not_available",
+			"iterations": [
+				{
+					"input_tokens": 617,
+					"output_tokens": 191,
+					"cache_read_input_tokens": 0,
+					"cache_creation_input_tokens": 0,
+					"cache_creation": {
+						"ephemeral_5m_input_tokens": 0,
+						"ephemeral_1h_input_tokens": 0
+					},
+					"type": "message"
+				}
+			],
+			"speed": "standard",
+			"fallback_credit": null
+		},
+		"modelUsage": {
+			"claude-haiku-4-5": {
+				"inputTokens": 617,
+				"outputTokens": 191,
+				"cacheReadInputTokens": 0,
+				"cacheCreationInputTokens": 0,
+				"webSearchRequests": 0,
+				"costUSD": 0.001572,
+				"contextWindow": 200000,
+				"maxOutputTokens": 32000,
+				"thinkingTokens": 79,
+				"canonicalModel": "claude-haiku-4-5",
+				"provider": "firstParty",
+				"costBasis": "list"
+			}
+		},
+		"permission_denials": [],
+		"terminal_reason": "completed",
+		"fast_mode_state": "off",
+		"fast_mode_disabled_reason": "sdk_opt_in_required",
+		"subagent_stats": {
+			"spawned": 0,
+			"requested": { "background": 0, "foreground": 0, "unset": 0 },
+			"started_in_background": 0,
+			"max_depth": 0,
+			"spawned_by_subagents": 0,
+			"completed": 0,
+			"failed": 0,
+			"killed": { "parent": 0, "user": 0, "system": 0 },
+			"refused": { "depth_limit": 0, "concurrency_limit": 0, "budget": 0 },
+			"by_type": {}
+		},
+		"is_error": false,
+		"num_turns": 1,
+		"subtype": "success",
+		"api_error_status": null,
+		"result": "# Software Development Investment Calculation\n\nLet me work through this step by step:\n\n**Year 1:** $8,000\n\n**Year 2:** Half of Year 1 = $8,000 ÷ 2 = $4,000\n\n**Total Investment over 2 years:**\n$8,000 + $4,000 = **$12,000**\n\nThe startup invested a total of **$12,000** in software development over the two years.",
+		"ttft_ms": 1165,
+		"type": "result",
+		"duration_ms": 3048,
+		"uuid": "203cc325-99c1-4cec-8bcd-f2a95265362e",
+		"ttft_stream_ms": 647,
+		"time_to_request_ms": 34,
+		"first_content_frame_ms": 647,
+		"queued_turn_count": 0,
+		"result_index": 0
+	},
+	"attempts": 1
+}

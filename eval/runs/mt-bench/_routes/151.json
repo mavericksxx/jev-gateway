@@ -1,0 +1,17 @@
+{
+	"tier": "opus-medium",
+	"reason": "low-confidence",
+	"confidence": 0.34,
+	"probabilities": {
+		"sonnet-low": 0.43,
+		"opus-low": 0.42,
+		"haiku": 0.03,
+		"opus-high": 0,
+		"fable-high": 0,
+		"sonnet-high": 0.12,
+		"opus-medium": 0
+	},
+	"jevLatencyMs": 350,
+	"jevCostUsd": 0.000028266000000000003,
+	"error": null
+}

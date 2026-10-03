@@ -1,0 +1,105 @@
+{
+	"win": 0,
+	"bothBad": 0,
+	"reason": "Both are engaging, well-structured posts covering culture and attractions, but A is more accurate and polished. B has small slips: the claim that ʻIolani Palace had telephones before the White House, calling the sunrise chant an \"oli komo\", and an immersion-breaking \"check current status\" aside.",
+	"setupIsA": false,
+	"judge": {
+		"text": "{\"verdict\":\"A\",\"reason\":\"Both are engaging, well-structured posts covering culture and attractions, but A is more accurate and polished. B has small slips: the claim that ʻIolani Palace had telephones before the White House, calling the sunrise chant an \\\"oli komo\\\", and an immersion-breaking \\\"check current status\\\" aside.\"}",
+		"model": "claude-fable-5-1",
+		"usage": {
+			"input_tokens": 2,
+			"output_tokens": 970,
+			"cache_read_input_tokens": 0,
+			"cache_creation_input_tokens": 6234
+		},
+		"costUsd": 0.1732,
+		"durationMs": 11280,
+		"stopReason": "end_turn",
+		"raw": {
+			"duration_api_ms": 10127,
+			"stop_reason": "end_turn",
+			"session_id": "5f587a5e-3aca-43a6-abdb-2b406d0573a8",
+			"total_cost_usd": 0.1732,
+			"usage": {
+				"input_tokens": 2,
+				"cache_creation_input_tokens": 6234,
+				"cache_read_input_tokens": 0,
+				"output_tokens": 970,
+				"output_tokens_details": { "thinking_tokens": 856 },
+				"server_tool_use": {
+					"web_search_requests": 0,
+					"web_fetch_requests": 0
+				},
+				"service_tier": "standard",
+				"cache_creation": {
+					"ephemeral_1h_input_tokens": 6234,
+					"ephemeral_5m_input_tokens": 0
+				},
+				"inference_geo": "not_available",
+				"iterations": [
+					{
+						"input_tokens": 2,
+						"output_tokens": 970,
+						"cache_read_input_tokens": 0,
+						"cache_creation_input_tokens": 6234,
+						"cache_creation": {
+							"ephemeral_5m_input_tokens": 0,
+							"ephemeral_1h_input_tokens": 6234
+						},
+						"type": "message"
+					}
+				],
+				"speed": "standard",
+				"fallback_credit": null
+			},
+			"modelUsage": {
+				"claude-fable-5-1": {
+					"inputTokens": 2,
+					"outputTokens": 970,
+					"cacheReadInputTokens": 0,
+					"cacheCreationInputTokens": 6234,
+					"webSearchRequests": 0,
+					"costUSD": 0.1732,
+					"contextWindow": 1000000,
+					"maxOutputTokens": 128000,
+					"thinkingTokens": 856,
+					"canonicalModel": "claude-fable-5-1",
+					"provider": "firstParty",
+					"costBasis": "list"
+				}
+			},
+			"permission_denials": [],
+			"terminal_reason": "completed",
+			"fast_mode_state": "off",
+			"fast_mode_disabled_reason": "sdk_opt_in_required",
+			"subagent_stats": {
+				"spawned": 0,
+				"requested": { "background": 0, "foreground": 0, "unset": 0 },
+				"started_in_background": 0,
+				"max_depth": 0,
+				"spawned_by_subagents": 0,
+				"completed": 0,
+				"failed": 0,
+				"killed": { "parent": 0, "user": 0, "system": 0 },
+				"refused": { "depth_limit": 0, "concurrency_limit": 0, "budget": 0 },
+				"by_type": {}
+			},
+			"is_error": false,
+			"num_turns": 1,
+			"subtype": "success",
+			"api_error_status": null,
+			"result": "{\"verdict\":\"A\",\"reason\":\"Both are engaging, well-structured posts covering culture and attractions, but A is more accurate and polished. B has small slips: the claim that ʻIolani Palace had telephones before the White House, calling the sunrise chant an \\\"oli komo\\\", and an immersion-breaking \\\"check current status\\\" aside.\"}",
+			"ttft_ms": 9206,
+			"type": "result",
+			"duration_ms": 11280,
+			"uuid": "bd2de480-d669-4f69-b806-99d4a247c321",
+			"ttft_stream_ms": 748,
+			"time_to_request_ms": 26,
+			"first_content_frame_ms": 749,
+			"queued_turn_count": 0,
+			"result_index": 0
+		},
+		"attempts": 1
+	},
+	"text": "# Aloha Means More Than Hello: Ten Days of Culture, Craters, and Coastlines in Hawaii\n\nI expected postcard beaches when I landed in Honolulu. What I didn't expect was to leave Hawaii feeling like I'd been let in on something deeper: a living culture that shapes everything here, from how people greet you to how they talk about the land under your feet.\n\nHere's how my ten days across O'ahu, Maui, and the Big Island unfolded, plus the experiences I'd tell any friend not to miss.\n\n---\n\n## O'ahu: Where History and Heartbeat Meet\n\n### Iolani Palace: The Only Royal Palace on U.S. Soil\n\nI started my trip in downtown Honolulu at **'Iolani Palace**, and I recommend everyone do the same. Before Hawaii was a state, or even a territory, it was a sovereign kingdom, and this palace was its seat. King Kalākaua built it in 1882 with electric lights and telephones before the White House had either.\n\nThe guided tour gets emotional in the upstairs room where **Queen Lili'uokalani** was imprisoned after the 1893 overthrow of the monarchy. While confined there, she worked on a quilt that's still on display. Seeing it made the history personal in a way no textbook had.\n\n**Tip:** Book tickets in advance, especially for the guided tour. Visitors wear protective booties over their shoes to preserve the original koa wood floors.\n\n### Pearl Harbor National Memorial\n\nThe **USS Arizona Memorial** is quiet and deeply moving. Standing over the sunken battleship, you can still see oil rising to the surface in small rainbow sheens, which locals call \"black tears.\" Reserve tickets on Recreation.gov ahead of time, since same-day slots go fast.\n\n### The North Shore Vibe\n\nAfter the intensity of Honolulu's history, I drove up to the **North Shore** for a slower day. I ate garlic shrimp from a food truck in Kahuku, watched surfers at **Waimea Bay**, and saw green sea turtles (honu) basking at **Laniakea Beach**. Give the turtles at least 10 feet of space. They're protected, and volunteers on site will remind you.\n\n---\n\n## Maui: Sunrise Above the Clouds\n\n### Haleakalā at Dawn\n\nI set my alarm for 2:30 a.m., drove switchbacks in the dark, and stood shivering at 10,000 feet. It was absolutely worth it.\n\nAs the sun rose over **Haleakalā** (\"House of the Sun\"), the clouds below turned orange, then pink, then gold. Then a park ranger began a traditional Hawaiian chant, the **oli komo**, welcoming the sun. The whole crowd went silent, and I got goosebumps.\n\n**Tip:** Sunrise viewing requires a reservation through Recreation.gov, released 60 days ahead. Bring layers, because temperatures near the summit can drop close to freezing.\n\n### The Road to Hāna\n\nThe Road to Hāna has 600+ curves, 50+ one-lane bridges, and more waterfalls than I could count. Highlights:\n\n- **Twin Falls** for an easy first swim\n- **Wai'ānapanapa State Park** and its black sand beach (reservations required)\n- **Banana bread stands** along the way, which deserve a road trip of their own\n\n**A note on respect:** Many people along this road live there year-round. Pull over to let locals pass, don't trespass on private property for photos, and remember Maui is still recovering from the 2023 Lahaina wildfires. Spend money at local businesses and follow current guidance about which areas are open to visitors.\n\n---\n\n## The Big Island: Fire, Stars, and Sacred Ground\n\n### Hawai'i Volcanoes National Park\n\nThis is where the islands are still being born. I hiked the **Kīlauea Iki Trail** across a crater floor that was a lake of lava in 1959. The ground still steams in places.\n\nWhat stuck with me most was learning about **Pele**, the goddess of fire and volcanoes. To many Native Hawaiians, she is a present force, not a myth from the past. Visitors are asked not to take lava rocks home. Partly that's tradition, and mostly it's respect.\n\n**Tip:** Check the NPS website for current volcanic activity. If there's an active eruption, visiting the overlooks after dark is unforgettable.\n\n### Pu'uhonua o Hōnaunau: The Place of Refuge\n\nThis was the most peaceful place I visited. In ancient Hawaii, anyone who broke a **kapu** (sacred law) could be pardoned if they reached this sanctuary. Carved wooden ki'i (images) stand guard over the reconstructed temple, and the bay next door is great for snorkeling.\n\n### Stargazing on Mauna Kea\n\nMauna Kea is one of the best places on Earth to see the night sky, and it's also one of the most sacred places in Hawaiian culture. I joined a guided stargazing tour at the visitor station level, which let me appreciate both the science and the cultural significance without contributing to the strain on the summit.\n\n---\n\n## Cultural Experiences That Made the Trip\n\n### A Lū'au Done Right\n\nI skipped the big resort shows and went to the **Old Lāhainā Lū'au** (now operating from its Maui location; check current status). It told the story of Hawaiian history through hula and chant instead of a generic Polynesian revue. I watched the **kālua pig** come out of the **imu** (underground oven), then ate poi, lomi salmon, and haupia (coconut pudding) until I couldn't move.\n\n### Learning Hula\n\nAt a free hula class at a Honolulu shopping center, I learned that hula isn't just a dance. It's storytelling, where every hand movement means something: rain, ocean, flowers, love. My hips did not cooperate, but my teacher, an auntie with endless patience, laughed with me, not at me.\n\n### Lei Making\n\nI took a lei-making workshop and learned that leis carry meaning. You never refuse one, you never take one off in front of the giver, and when it wilts, you return it to the earth instead of throwing it away.\n\n---\n\n## What I Learned About Visiting Respectfully\n\nHawaii isn't just a vacation spot. It's home to a Native Hawaiian community with a complicated history and a very present culture. A few things I'll carry forward:\n\n- **Learn a few words:** *Mahalo* (thank you), *'āina* (land), *ʻohana* (family), *kuleana* (responsibility)\n- **Use reef-safe sunscreen.** Hawaii has banned sunscreens containing oxybenzone and octinoxate.\n- **Follow the Mālama Hawai'i spirit:** Give back by joining a beach cleanup or volunteering with conservation groups.\n- **Respect closures and kapu signs.** Some places are sacred or fragile, and the rules have reasons.\n- **Support local:** Farmers' markets, Hawaiian-owned businesses, and local artisans.\n\n---\n\n## Final Thoughts\n\nOn my last evening I sat on a beach in Kona and watched the sun disappear into the Pacific. A local man fishing nearby asked if I'd had a good trip. When I told him how much I'd loved it, he smiled and said, \"Then come back and take care of the place.\"\n\nThat's aloha. It's not just hello or goodbye. It's a promise to give back as much as you take.\n\n**Mahalo, Hawai'i. A hui hou** (until we meet again). 🌺\n\n---\n\n*Have you been to Hawaii? What cultural experience moved you most? Share it in the comments below!*"
+}

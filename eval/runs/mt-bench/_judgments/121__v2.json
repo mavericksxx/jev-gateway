@@ -1,0 +1,105 @@
+{
+	"win": 0,
+	"bothBad": 0,
+	"reason": "Both programs correctly and recursively count words in .txt files and return the top 5 via Counter.most_common. A is slightly more robust: its regex handles apostrophes cleanly, the library function itself validates the directory, and it handles empty results, whereas B's top_words silently returns an empty list for a bad path.",
+	"setupIsA": false,
+	"judge": {
+		"text": "{\"verdict\": \"A\", \"reason\": \"Both programs correctly and recursively count words in .txt files and return the top 5 via Counter.most_common. A is slightly more robust: its regex handles apostrophes cleanly, the library function itself validates the directory, and it handles empty results, whereas B's top_words silently returns an empty list for a bad path.\"}",
+		"model": "claude-fable-5-1",
+		"usage": {
+			"input_tokens": 2,
+			"output_tokens": 766,
+			"cache_read_input_tokens": 0,
+			"cache_creation_input_tokens": 3307
+		},
+		"costUsd": 0.10446,
+		"durationMs": 10648,
+		"stopReason": "end_turn",
+		"raw": {
+			"duration_api_ms": 9374,
+			"stop_reason": "end_turn",
+			"session_id": "8963265d-af67-4830-a991-aba0e47d1783",
+			"total_cost_usd": 0.10446,
+			"usage": {
+				"input_tokens": 2,
+				"cache_creation_input_tokens": 3307,
+				"cache_read_input_tokens": 0,
+				"output_tokens": 766,
+				"output_tokens_details": { "thinking_tokens": 650 },
+				"server_tool_use": {
+					"web_search_requests": 0,
+					"web_fetch_requests": 0
+				},
+				"service_tier": "standard",
+				"cache_creation": {
+					"ephemeral_1h_input_tokens": 3307,
+					"ephemeral_5m_input_tokens": 0
+				},
+				"inference_geo": "not_available",
+				"iterations": [
+					{
+						"input_tokens": 2,
+						"output_tokens": 766,
+						"cache_read_input_tokens": 0,
+						"cache_creation_input_tokens": 3307,
+						"cache_creation": {
+							"ephemeral_5m_input_tokens": 0,
+							"ephemeral_1h_input_tokens": 3307
+						},
+						"type": "message"
+					}
+				],
+				"speed": "standard",
+				"fallback_credit": null
+			},
+			"modelUsage": {
+				"claude-fable-5-1": {
+					"inputTokens": 2,
+					"outputTokens": 766,
+					"cacheReadInputTokens": 0,
+					"cacheCreationInputTokens": 3307,
+					"webSearchRequests": 0,
+					"costUSD": 0.10446,
+					"contextWindow": 1000000,
+					"maxOutputTokens": 128000,
+					"thinkingTokens": 650,
+					"canonicalModel": "claude-fable-5-1",
+					"provider": "firstParty",
+					"costBasis": "list"
+				}
+			},
+			"permission_denials": [],
+			"terminal_reason": "completed",
+			"fast_mode_state": "off",
+			"fast_mode_disabled_reason": "sdk_opt_in_required",
+			"subagent_stats": {
+				"spawned": 0,
+				"requested": { "background": 0, "foreground": 0, "unset": 0 },
+				"started_in_background": 0,
+				"max_depth": 0,
+				"spawned_by_subagents": 0,
+				"completed": 0,
+				"failed": 0,
+				"killed": { "parent": 0, "user": 0, "system": 0 },
+				"refused": { "depth_limit": 0, "concurrency_limit": 0, "budget": 0 },
+				"by_type": {}
+			},
+			"is_error": false,
+			"num_turns": 1,
+			"subtype": "success",
+			"api_error_status": null,
+			"result": "{\"verdict\": \"A\", \"reason\": \"Both programs correctly and recursively count words in .txt files and return the top 5 via Counter.most_common. A is slightly more robust: its regex handles apostrophes cleanly, the library function itself validates the directory, and it handles empty results, whereas B's top_words silently returns an empty list for a bad path.\"}",
+			"ttft_ms": 8125,
+			"type": "result",
+			"duration_ms": 10648,
+			"uuid": "473bc776-3b80-437d-bcfa-fe68d4cbc3db",
+			"ttft_stream_ms": 855,
+			"time_to_request_ms": 34,
+			"first_content_frame_ms": 856,
+			"queued_turn_count": 0,
+			"result_index": 0
+		},
+		"attempts": 1
+	},
+	"text": "Here's a program that recursively reads all `.txt` files under a directory and prints the top-5 most frequent words.\n\n```python\n#!/usr/bin/env python3\n\"\"\"Find the top-N most frequent words across all .txt files under a directory.\"\"\"\n\nimport argparse\nimport re\nimport sys\nfrom collections import Counter\nfrom pathlib import Path\n\nWORD_RE = re.compile(r\"[a-zA-Z0-9']+\")\n\n\ndef count_words(directory: Path) -> Counter:\n    counts = Counter()\n    for path in directory.rglob(\"*.txt\"):\n        if not path.is_file():\n            continue\n        try:\n            with path.open(\"r\", encoding=\"utf-8\", errors=\"ignore\") as f:\n                for line in f:\n                    counts.update(w.strip(\"'\") for w in WORD_RE.findall(line.lower()))\n        except OSError as e:\n            print(f\"Skipping {path}: {e}\", file=sys.stderr)\n    counts.pop(\"\", None)\n    return counts\n\n\ndef top_words(directory, n=5):\n    return count_words(Path(directory)).most_common(n)\n\n\ndef main():\n    parser = argparse.ArgumentParser(description=__doc__)\n    parser.add_argument(\"directory\", nargs=\"?\", default=\".\", help=\"directory to scan (default: .)\")\n    parser.add_argument(\"-n\", type=int, default=5, help=\"number of top words (default: 5)\")\n    args = parser.parse_args()\n\n    if not Path(args.directory).is_dir():\n        sys.exit(f\"Error: {args.directory} is not a directory\")\n\n    for word, count in top_words(args.directory, args.n):\n        print(f\"{word}: {count}\")\n\n\nif __name__ == \"__main__\":\n    main()\n```\n\n**Usage**\n\n```bash\npython top_words.py /path/to/dir        # top 5\npython top_words.py /path/to/dir -n 10  # top 10\n```\n\n**Notes**\n- Recursion: `rglob(\"*.txt\")` searches all subdirectories.\n- Case-insensitive: \"The\" and \"the\" are counted together.\n- Memory-efficient: files are read line by line.\n- Robust: undecodable bytes are ignored, and unreadable files are skipped with a warning.\n- Stop words (e.g. \"the\", \"and\") are not filtered, so they will likely dominate the results. To exclude them, add a set such as `STOP = {\"the\", \"and\", \"a\", \"of\", \"to\"}` and skip those words when updating the counter.\n\nI haven't run it against any files; if you'd like, I can add tests or a stop-word option."
+}

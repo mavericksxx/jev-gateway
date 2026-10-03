@@ -1,0 +1,17 @@
+{
+	"tier": "haiku",
+	"reason": "jev",
+	"confidence": 0.88,
+	"probabilities": {
+		"opus-medium": 0,
+		"opus-low": 0,
+		"opus-high": 0,
+		"fable-high": 0,
+		"haiku": 0.9,
+		"sonnet-low": 0.1,
+		"sonnet-high": 0
+	},
+	"jevLatencyMs": 420,
+	"jevCostUsd": 0.000028686000000000003,
+	"error": null
+}

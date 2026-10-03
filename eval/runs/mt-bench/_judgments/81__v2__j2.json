@@ -1,0 +1,107 @@
+{
+	"win": 0,
+	"bothBad": 0,
+	"acceptable": 1,
+	"baselineAcceptable": 1,
+	"reason": "Both are accurate, well-structured Hawaii blog posts covering culture and attractions. B is more engaging and richer in cultural detail (ʻIolani Palace history, Bishop Museum, Puʻuhonua o Hōnaunau, a personal closing anecdote), while A breaks immersion with a template disclaimer and a trailing follow-up offer.",
+	"setupIsA": true,
+	"judge": {
+		"text": "{\"verdict\": \"B\", \"acceptable\": {\"A\": true, \"B\": true}, \"reason\": \"Both are accurate, well-structured Hawaii blog posts covering culture and attractions. B is more engaging and richer in cultural detail (ʻIolani Palace history, Bishop Museum, Puʻuhonua o Hōnaunau, a personal closing anecdote), while A breaks immersion with a template disclaimer and a trailing follow-up offer.\"}",
+		"model": "claude-fable-5-1",
+		"usage": {
+			"input_tokens": 2,
+			"output_tokens": 497,
+			"cache_read_input_tokens": 0,
+			"cache_creation_input_tokens": 5681
+		},
+		"costUsd": 0.13849,
+		"durationMs": 6795,
+		"stopReason": "end_turn",
+		"raw": {
+			"duration_api_ms": 5599,
+			"stop_reason": "end_turn",
+			"session_id": "f6ccdad9-2c5f-4843-bc99-780af02cd32c",
+			"total_cost_usd": 0.13849,
+			"usage": {
+				"input_tokens": 2,
+				"cache_creation_input_tokens": 5681,
+				"cache_read_input_tokens": 0,
+				"output_tokens": 497,
+				"output_tokens_details": { "thinking_tokens": 343 },
+				"server_tool_use": {
+					"web_search_requests": 0,
+					"web_fetch_requests": 0
+				},
+				"service_tier": "standard",
+				"cache_creation": {
+					"ephemeral_1h_input_tokens": 5681,
+					"ephemeral_5m_input_tokens": 0
+				},
+				"inference_geo": "not_available",
+				"iterations": [
+					{
+						"input_tokens": 2,
+						"output_tokens": 497,
+						"cache_read_input_tokens": 0,
+						"cache_creation_input_tokens": 5681,
+						"cache_creation": {
+							"ephemeral_5m_input_tokens": 0,
+							"ephemeral_1h_input_tokens": 5681
+						},
+						"type": "message"
+					}
+				],
+				"speed": "standard",
+				"fallback_credit": null
+			},
+			"modelUsage": {
+				"claude-fable-5-1": {
+					"inputTokens": 2,
+					"outputTokens": 497,
+					"cacheReadInputTokens": 0,
+					"cacheCreationInputTokens": 5681,
+					"webSearchRequests": 0,
+					"costUSD": 0.13849,
+					"contextWindow": 1000000,
+					"maxOutputTokens": 128000,
+					"thinkingTokens": 343,
+					"canonicalModel": "claude-fable-5-1",
+					"provider": "firstParty",
+					"costBasis": "list"
+				}
+			},
+			"permission_denials": [],
+			"terminal_reason": "completed",
+			"fast_mode_state": "off",
+			"fast_mode_disabled_reason": "sdk_opt_in_required",
+			"subagent_stats": {
+				"spawned": 0,
+				"requested": { "background": 0, "foreground": 0, "unset": 0 },
+				"started_in_background": 0,
+				"max_depth": 0,
+				"spawned_by_subagents": 0,
+				"completed": 0,
+				"failed": 0,
+				"killed": { "parent": 0, "user": 0, "system": 0 },
+				"refused": { "depth_limit": 0, "concurrency_limit": 0, "budget": 0 },
+				"by_type": {}
+			},
+			"is_error": false,
+			"num_turns": 1,
+			"subtype": "success",
+			"api_error_status": null,
+			"result": "{\"verdict\": \"B\", \"acceptable\": {\"A\": true, \"B\": true}, \"reason\": \"Both are accurate, well-structured Hawaii blog posts covering culture and attractions. B is more engaging and richer in cultural detail (ʻIolani Palace history, Bishop Museum, Puʻuhonua o Hōnaunau, a personal closing anecdote), while A breaks immersion with a template disclaimer and a trailing follow-up offer.\"}",
+			"ttft_ms": 4211,
+			"type": "result",
+			"duration_ms": 6795,
+			"uuid": "df1a1238-5c43-4b3c-9487-2dc75e0172e6",
+			"ttft_stream_ms": 768,
+			"time_to_request_ms": 30,
+			"first_content_frame_ms": 768,
+			"queued_turn_count": 0,
+			"result_index": 0
+		},
+		"attempts": 1
+	},
+	"text": "# Aloha, Hawaiʻi: Eight Days of Volcanoes, Valleys, and Verses of the Islands\n\n*I stepped off the plane expecting postcard beaches. I left with a deeper understanding of a place where land, language, and people are bound together.*\n\n*(A note: this is a creative piece written as a template. Swap in your own details, names, and moments to make it yours.)*\n\n---\n\n## Arrival: The Scent of Plumeria\n\nThe first thing that hits you in Hawaiʻi isn't the view. It's the air. Warm, soft, and carrying a trace of plumeria and salt, it greets you the moment you step out of the terminal. Within minutes, someone had placed a fragrant lei around my neck, and I understood that this trip would be about more than sightseeing. It would be about being welcomed.\n\nMy itinerary spanned three islands: Oʻahu, Maui, and Hawaiʻi Island (the Big Island). Each had its own personality, and each taught me something different.\n\n---\n\n## Oʻahu: History, Hula, and Handmade Everything\n\n### Pearl Harbor National Memorial\nI started somewhere sobering. Standing over the USS Arizona Memorial, watching the occasional drop of oil still rise to the surface after more than 80 years, was quietly humbling. **Tip:** Reserve tickets online in advance, since they go quickly, and arrive early.\n\n### Learning the Story Behind the Hula\nHula is often reduced to a tourist show, but at a cultural workshop in Honolulu, my kumu (teacher) explained that every movement tells a story: of the wind, the ocean, ancestors, and love of place. My hips were not so graceful. My appreciation, though, was sincere.\n\n### ʻIolani Palace\nThe only royal palace on U.S. soil is a window into the Hawaiian Kingdom, its monarchs, and its 1893 overthrow. Take the guided tour. It adds context that makes every other part of the trip richer.\n\n### Eat Like a Local\n- **Poke** from a neighborhood counter, not a resort\n- **Shave ice** with azuki beans and a snow-cap of condensed milk\n- **Plate lunch**: two scoops rice, macaroni salad, and kalua pork. Simple perfection.\n\n---\n\n## Maui: Sunrise Above the Clouds\n\n### Haleakalā at Dawn\nWaking at 3 a.m. is never fun, but watching the sun rise above a sea of clouds from the summit of Haleakalā (\"House of the Sun\") made it worthwhile. It was freezing, so bring layers. Sunrise reservations are required, so book ahead.\n\n### The Road to Hāna\nSix hundred-plus curves, dozens of one-lane bridges, and waterfalls around every bend. Go slowly, pull over for locals, and treat the journey as the destination. Stop for fresh banana bread at a roadside stand, and don't rush.\n\n### Respecting the ʻĀina\nOn Maui I learned the phrase **mālama ʻāina**: to care for the land. Many places ask visitors to stay on marked trails, avoid reef-damaging sunscreen, and not take rocks, sand, or lava. These aren't just rules. They're a way of honoring the place that hosts you.\n\n---\n\n## The Big Island: Where the Earth Is Still Being Made\n\n### Hawaiʻi Volcanoes National Park\nFew experiences compare to standing at the edge of a crater in a landscape still being shaped by fire. Walk through the Nāhuku lava tube, hike across Kīlauea Iki's crater floor, and if conditions allow, watch the glow after dark. Check the park's current conditions before you go, as volcanic activity changes constantly.\n\n### Mauna Kea Stargazing\nHawaiian cosmology holds Mauna Kea as sacred. Above the clouds, the stars are almost overwhelming. Visitor-area stargazing programs offer a respectful way to experience the night sky.\n\n### Punaluʻu Black Sand Beach\nHonu (green sea turtles) bask on the dark sand here. Admire them from a distance, since they're protected, and keep a respectful gap of at least 10 feet.\n\n---\n\n## What I'm Taking Home\n\n- **Slow down.** \"Island time\" isn't laziness. It's presence.\n- **Learn a few words.** *Aloha* (love, hello, goodbye), *mahalo* (thank you), *ohana* (family).\n- **Support local.** Buy from Native Hawaiian-owned businesses, farmers' markets, and craft makers.\n- **Travel with humility.** You're a guest in someone's home.\n\n---\n\n## Practical Tips\n\n| Topic | Advice |\n|---|---|\n| Best time to visit | April–May and September–October for fewer crowds |\n| Getting around | Rent a car on Maui and the Big Island |\n| Packing | Reef-safe sunscreen, light rain jacket, sturdy sandals, a warm layer for summits |\n| Booking | Reserve Pearl Harbor, Haleakalā sunrise, and popular tours early |\n\n---\n\n## Final Thoughts\n\nHawaiʻi doesn't just show you beauty. It asks you to take part in it thoughtfully. I arrived as a tourist and left feeling like a guest who had been trusted with something precious.\n\n*A hui hou kākou*, until we meet again.\n\n---\n\nWould you like me to tailor this with your actual trip details, such as specific islands, dates, or photos, adjust the tone (more humorous, budget-focused, family-friendly), or save it as a file in your project folder?"
+}
