@@ -6,6 +6,7 @@ import type {
 	CascadeAttempt,
 	RequestRecord,
 	RouteDecision,
+	ToolTrim,
 } from "../src/types";
 
 const path = process.argv[2] ?? "demo.db";
@@ -28,6 +29,114 @@ function mulberry32(seed: number) {
 const rand = mulberry32(20260925);
 const between = (lo: number, hi: number) => lo + rand() * (hi - lo);
 const int = (lo: number, hi: number) => Math.round(between(lo, hi));
+
+// Separate stream so tool-trim data doesn't shift the other seeded values.
+const trimRand = mulberry32(20261003);
+const trimBetween = (lo: number, hi: number) => lo + trimRand() * (hi - lo);
+const trimInt = (lo: number, hi: number) => Math.round(trimBetween(lo, hi));
+const TOOL_NAMES = [
+	"github_create_issue",
+	"github_list_prs",
+	"github_get_file",
+	"github_create_pr",
+	"slack_post_message",
+	"slack_search",
+	"slack_list_channels",
+	"fs_read_file",
+	"fs_write_file",
+	"fs_list_dir",
+	"fs_search",
+	"sql_query",
+	"sql_describe_table",
+	"jira_create_ticket",
+	"jira_search",
+	"calendar_list_events",
+	"calendar_create_event",
+	"email_send",
+	"email_search",
+	"web_search",
+	"web_fetch",
+	"shell_exec",
+	"docker_ps",
+	"docker_logs",
+	"k8s_get_pods",
+	"k8s_apply",
+	"s3_list_objects",
+	"s3_get_object",
+	"stripe_list_charges",
+	"stripe_refund",
+	"notion_search",
+	"notion_create_page",
+	"linear_create_issue",
+	"linear_list_issues",
+	"pagerduty_ack",
+	"datadog_query",
+	"sentry_list_issues",
+	"figma_get_file",
+	"gdrive_search",
+	"gdrive_read",
+	"zendesk_get_ticket",
+	"hubspot_find_contact",
+	"twilio_send_sms",
+	"redis_get",
+	"mongo_find",
+	"terraform_plan",
+	"npm_search",
+	"pypi_search",
+	"weather_lookup",
+	"translate_text",
+	"image_resize",
+	"pdf_extract_text",
+	"csv_parse",
+	"json_validate",
+	"regex_test",
+	"http_request",
+	"dns_lookup",
+	"git_diff",
+	"git_log",
+	"git_commit",
+];
+
+function makeToolTrim(): ToolTrim {
+	const offered = trimInt(15, 60);
+	const names = [...TOOL_NAMES].sort(() => trimRand() - 0.5).slice(0, offered);
+	const jevCostUsd = ((offered * 70 + 300) * 0.042) / 1e6;
+	const jevLatencyMs = trimInt(250, 700);
+	if (trimRand() < 0.05) {
+		return {
+			offered,
+			kept: offered,
+			removed: [],
+			estimatedTokensSaved: 0,
+			scores: null,
+			jevLatencyMs: null,
+			jevCostUsd: null,
+			error: "timeout",
+		};
+	}
+	const scores: Record<string, number> = {};
+	for (const n of names) {
+		scores[n] =
+			trimRand() < 0.2 ? trimBetween(0.5, 0.98) : trimBetween(0.01, 0.35);
+	}
+	const top5 = new Set(
+		Object.entries(scores)
+			.sort((a, b) => b[1] - a[1])
+			.slice(0, 5)
+			.map(([n]) => n),
+	);
+	const removed = names.filter((n) => (scores[n] ?? 1) < 0.2 && !top5.has(n));
+	return {
+		offered,
+		kept: offered - removed.length,
+		removed,
+		estimatedTokensSaved: removed.reduce((a) => a + trimInt(120, 400), 0),
+		scores,
+		jevLatencyMs,
+		jevCostUsd,
+		error: null,
+	};
+}
 
 const WEIGHTS: Array<[Tier, number]> = [
 	["haiku", 0.3],
@@ -196,6 +305,7 @@ for (let i = 0; i < 300; i++) {
 		error: failed ? "upstream error" : null,
 		...(route ? { route } : {}),
 		...(cascade ? { cascade } : {}),
+		...(trimRand() < 0.15 ? { toolTrim: makeToolTrim() } : {}),
 	});
 }
 for (let i = 0; i < 10; i++) {

@@ -4,10 +4,10 @@ import {
 	computeStats,
 	withBaseline,
 } from "../src/dashboard/stats";
-import { costUsd } from "../src/pricing";
+import { costUsd, PRICES } from "../src/pricing";
 import { ALL_TIERS, TIERS, type Tier } from "../src/routing/tiers";
 import type { StoredRequest } from "../src/store/db";
-import type { CascadeAttempt, RouteDecision } from "../src/types";
+import type { CascadeAttempt, RouteDecision, ToolTrim } from "../src/types";
 
 const usage = {
 	input_tokens: 1000,
@@ -229,4 +229,75 @@ test("cascade figures, serving-tier mix and Jev spend", () => {
 		wastedUsd: 0,
 		jevCostUsd: 0,
 	});
+});
+
+const trim = (over: Partial<ToolTrim> = {}): ToolTrim => ({
+	offered: 20,
+	kept: 15,
+	removed: ["a", "b", "c", "d", "e"],
+	estimatedTokensSaved: 1000,
+	scores: null,
+	jevLatencyMs: 300,
+	jevCostUsd: 0.0001,
+	error: null,
+	...over,
+});
+
+test("baseline adds back trimmed tokens: routed at baseline model, non-routed at upstream", () => {
+	const routed = row({ toolTrim: trim() });
+	expect(baselineCostUsd(routed, "opus-medium")).toBeCloseTo(
+		opusCost + (1000 * (PRICES[TIERS["opus-medium"].model]?.input ?? 0)) / 1e6,
+		10,
+	);
+	const plain = row({
+		route: undefined,
+		upstreamModel: TIERS.haiku.model,
+		toolTrim: trim(),
+	});
+	expect(baselineCostUsd(plain, "opus-medium")).toBeCloseTo(
+		haikuCost + (1000 * (PRICES[TIERS.haiku.model]?.input ?? 0)) / 1e6,
+		10,
+	);
+	const unpriced = row({
+		route: undefined,
+		upstreamModel: "mystery-model",
+		costUsd: 0.5,
+		toolTrim: trim(),
+	});
+	expect(baselineCostUsd(unpriced, "opus-medium")).toBe(0.5);
+	expect(
+		baselineCostUsd(row({ usage: null, toolTrim: trim() }), "opus-medium"),
+	).toBeNull();
+});
+
+test("toolTrim stats and jevSpentUsd", () => {
+	const s = computeStats(
+		[
+			row({ toolTrim: trim() }),
+			row({
+				route: undefined,
+				toolTrim: trim({
+					offered: 5,
+					kept: 5,
+					removed: [],
+					estimatedTokensSaved: 0,
+					jevCostUsd: null,
+					error: "timeout",
+				}),
+			}),
+			row(),
+		],
+		opts,
+	);
+	const price = PRICES[TIERS["opus-medium"].model]?.input ?? 0;
+	expect(s.toolTrim).toMatchObject({
+		requests: 2,
+		trimmed: 1,
+		toolsOffered: 25,
+		toolsRemoved: 5,
+		estimatedTokensSaved: 1000,
+	});
+	expect(s.toolTrim.estimatedSavedUsd).toBeCloseTo((1000 * price) / 1e6, 10);
+	expect(s.toolTrim.jevCostUsd).toBeCloseTo(0.0001, 10);
+	expect(s.totals.jevSpentUsd).toBeCloseTo(0.00003 * 2 + 0.0001, 10);
 });

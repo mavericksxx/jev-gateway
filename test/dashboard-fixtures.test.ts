@@ -18,6 +18,7 @@ test("stats has every StatsResponse key", () => {
 		"jevLatencyMs",
 		"tierMix",
 		"cascade",
+		"toolTrim",
 		"reasons",
 		"bucketMs",
 		"timeline",
@@ -154,4 +155,40 @@ test("index.html has no network references and no innerHTML", async () => {
 	const stripped = html.replace("http://www.w3.org/2000/svg", "");
 	expect(stripped).not.toMatch(/https?:\/\//);
 	expect(html).not.toContain("innerHTML");
+});
+
+test("toolTrim block is consistent and rows carry full records", () => {
+	for (const k of [
+		"requests",
+		"trimmed",
+		"toolsOffered",
+		"toolsRemoved",
+		"estimatedTokensSaved",
+		"estimatedSavedUsd",
+		"jevCostUsd",
+	]) {
+		expect(stats.toolTrim).toHaveProperty(k);
+	}
+	const trimmed = requests.filter((r) => r.toolTrim);
+	expect(trimmed.length).toBe(stats.toolTrim.requests);
+	expect(trimmed.some((r) => r.route)).toBe(true);
+	expect(trimmed.some((r) => !r.route)).toBe(true);
+	expect(trimmed.some((r) => r.toolTrim?.error)).toBe(true);
+	for (const r of trimmed) {
+		for (const k of [
+			"offered",
+			"kept",
+			"removed",
+			"estimatedTokensSaved",
+			"scores",
+			"jevLatencyMs",
+			"jevCostUsd",
+			"error",
+		]) {
+			expect(r.toolTrim).toHaveProperty(k);
+		}
+		expect(r.toolTrim?.kept).toBe(
+			(r.toolTrim?.offered ?? 0) - (r.toolTrim?.removed.length ?? 0),
+		);
+	}
 });

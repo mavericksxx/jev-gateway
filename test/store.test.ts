@@ -236,3 +236,69 @@ test("opening a Phase 2 database adds cascade columns and keeps rows", () => {
 		rmSync(dir, { recursive: true, force: true });
 	}
 });
+
+test("toolTrim round-trips; rows without it omit the key; Jev cost is summed", () => {
+	const store = createStore(":memory:");
+	const withScores = {
+		offered: 3,
+		kept: 2,
+		removed: ["x"],
+		estimatedTokensSaved: 250,
+		scores: { x: 0.1, y: 0.9, z: 0.8 },
+		jevLatencyMs: 400,
+		jevCostUsd: 0.002,
+		error: null,
+	};
+	const failed = {
+		offered: 2,
+		kept: 2,
+		removed: [],
+		estimatedTokensSaved: 0,
+		scores: null,
+		jevLatencyMs: null,
+		jevCostUsd: null,
+		error: "timeout",
+	};
+	store.insert({ ...a, id: "t1", startedAt: 1, toolTrim: withScores }, null);
+	store.insert({ ...a, id: "t2", startedAt: 2, toolTrim: failed }, null);
+	store.insert({ ...a, id: "t3", startedAt: 3 }, null);
+	const rows = store.recent(10);
+	expect(rows[0]).not.toHaveProperty("toolTrim");
+	expect(rows[1]?.toolTrim).toEqual(failed);
+	expect(rows[2]?.toolTrim).toEqual(withScores);
+	expect(store.jevSpentUsd()).toBeCloseTo(0.002);
+	store.close();
+});
+
+test("a pre-toolTrim database migrates without losing rows", () => {
+	const dir = mkdtempSync(join(tmpdir(), "jev-store-"));
+	const path = join(dir, "old.db");
+	try {
+		const old = new Database(path);
+		old.run(`CREATE TABLE requests (
+			id TEXT PRIMARY KEY, started_at INTEGER NOT NULL, latency_ms INTEGER NOT NULL,
+			endpoint TEXT NOT NULL, requested_model TEXT NOT NULL, upstream_model TEXT NOT NULL,
+			stream INTEGER NOT NULL, status INTEGER NOT NULL, input_tokens INTEGER,
+			output_tokens INTEGER, cache_creation_input_tokens INTEGER,
+			cache_read_input_tokens INTEGER, error TEXT, cost_usd REAL,
+			route_tier TEXT, route_reason TEXT, route_confidence REAL, route_probabilities TEXT,
+			jev_latency_ms INTEGER, jev_cost_usd REAL, route_error TEXT,
+			cascade_first_tier TEXT, cascade_escalation_tier TEXT, cascade_accepted INTEGER,
+			cascade_pass_probability REAL, cascade_jev_latency_ms INTEGER, cascade_jev_cost_usd REAL,
+			cascade_wasted_usage TEXT, cascade_wasted_cost_usd REAL, cascade_error TEXT
+		)`);
+		old.run(
+			"INSERT INTO requests (id, started_at, latency_ms, endpoint, requested_model, upstream_model, stream, status, cost_usd) VALUES ('o',1,2,'messages','m','m',0,200,0.5)",
+		);
+		old.close();
+		const store = createStore(path);
+		store.insert({ ...a, id: "n", startedAt: 2 }, null);
+		const rows = store.recent(10);
+		expect(rows).toHaveLength(2);
+		expect(rows[1]).toMatchObject({ id: "o", costUsd: 0.5 });
+		expect(rows[1]).not.toHaveProperty("toolTrim");
+		store.close();
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
