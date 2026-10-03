@@ -23,6 +23,7 @@ export interface StatsResponse {
 		savedUsd: number;
 		/** savedUsd / baselineCostUsd; null when baselineCostUsd is 0. */
 		savedPct: number | null;
+		/** Router + cascade-judge Jev costs. */
 		jevSpentUsd: number;
 		jevBudgetUsd: number;
 		/** savedUsd - jevSpentUsd */
@@ -30,13 +31,25 @@ export interface StatsResponse {
 	};
 	/** Over requests where Jev was actually called (jevLatencyMs not null). Null when there are none. */
 	jevLatencyMs: { p50: number | null; p95: number | null };
-	/** Routed requests only. Always all 7 tiers in TIERS order, zeros included. */
+	/**
+	 * Routed requests only, by the tier that served the response (the cascade's first tier
+	 * when accepted, else route.tier). Always all 7 tiers in TIERS order, zeros included.
+	 */
 	tierMix: Array<{
 		tier: Tier;
 		model: string;
 		requests: number;
 		costUsd: number;
 	}>;
+	/** Cheap-first attempts. wastedUsd = sum of rejected first attempts' cost (already inside actualCostUsd). */
+	cascade: {
+		attempted: number;
+		accepted: number;
+		escalated: number;
+		wastedUsd: number;
+		/** Jev cost of judging answers (already inside totals.jevSpentUsd). */
+		jevCostUsd: number;
+	};
 	/** Routed requests by decision reason; all four keys always present. */
 	reasons: Record<RouteDecision["reason"], number>;
 	/**

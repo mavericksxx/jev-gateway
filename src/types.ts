@@ -30,6 +30,8 @@ export interface RequestRecord {
 	error: string | null;
 	/** Present only when the gateway chose the model (`model: "auto"`). */
 	route?: RouteDecision;
+	/** Present only when a cheap-first attempt ran for this request. */
+	cascade?: CascadeAttempt;
 }
 
 /** How the router picked a tier for one request. */
@@ -48,5 +50,30 @@ export interface RouteDecision {
 	jevLatencyMs: number | null;
 	/** Charged to the gateway's Jev budget; null when Jev wasn't called or a caller-supplied key was used. */
 	jevCostUsd: number | null;
+	error: string | null;
+}
+
+/**
+ * A cheap-first attempt. `RequestRecord.usage` and `upstreamModel` always describe the
+ * response actually returned to the client: the first tier's when accepted, the
+ * escalation tier's when not.
+ */
+export interface CascadeAttempt {
+	/** Tier tried first. */
+	firstTier: Tier;
+	/** The router's pick; used when the first answer is rejected. */
+	escalationTier: Tier;
+	/** True when the first answer was returned to the client. */
+	accepted: boolean;
+	/** Jev's probability that the first answer fully answers the request; null when Jev wasn't asked. */
+	passProbability: number | null;
+	jevLatencyMs: number | null;
+	/** Charged to the gateway's Jev budget; null when Jev wasn't called or a caller-supplied key was used. */
+	jevCostUsd: number | null;
+	/** Usage of the rejected first attempt; null when accepted or it failed before returning usage. */
+	wastedUsage: ClaudeUsage | null;
+	/** Cost of the rejected first attempt; 0 when accepted. */
+	wastedCostUsd: number;
+	/** Why it escalated without asking Jev (e.g. "stop_reason max_tokens"), or a Jev/upstream error. */
 	error: string | null;
 }

@@ -121,6 +121,14 @@ export function computeStats(
 			requests: mix.get(tier)?.requests ?? 0,
 			costUsd: mix.get(tier)?.costUsd ?? 0,
 		})),
+		// Placeholder until the cascade stats land in Phase 4.
+		cascade: {
+			attempted: 0,
+			accepted: 0,
+			escalated: 0,
+			wastedUsd: 0,
+			jevCostUsd: 0,
+		},
 		reasons,
 		bucketMs,
 		timeline,
