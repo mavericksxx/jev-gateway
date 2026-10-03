@@ -62,7 +62,7 @@ h1 { font-size: 20px; margin: 0; }
 h2 { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.04em; }
 .banner { background: var(--surface); border: 1px solid var(--bad); color: var(--bad); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 13px; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; min-width: 0; }
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 10px; margin-bottom: 12px; }
 .kpi .label { color: var(--ink-3); font-size: 12px; }
 .kpi .value { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; margin: 2px 0; overflow-wrap: anywhere; }
 .kpi .detail { color: var(--ink-2); font-size: 12px; font-variant-numeric: tabular-nums; }
@@ -110,6 +110,7 @@ tr.detail td { white-space: normal; background: var(--bg); }
 .trim .bar i { display: block; height: 100%; background: var(--ink-3); border-radius: 3px; }
 .trim .cut i { background: var(--baseline); }
 .trim .nm { font-family: var(--mono); overflow-wrap: anywhere; }
+.badge.hit { color: var(--actual); border-color: var(--actual); }
 .err-text { color: var(--bad); }
 </style>
 </head>
@@ -247,6 +248,11 @@ function toolTrimKpi(t) {
 	return kpi("Tool trimming", `${int(t.toolsRemoved)} of ${int(t.toolsOffered)} tools trimmed`,
 		`${int(t.trimmed)} requests · ~${int(t.estimatedTokensSaved)} tokens · ~${usd(t.estimatedSavedUsd)} saved`);
 }
+function cacheKpi(c) {
+	if (!c.lookups) return kpi("Answer cache", "not used", "Enable per request with x-gateway-cache: on");
+	return kpi("Answer cache", `${int(c.hits)} hits of ${int(c.lookups)} lookups (${pct(c.hitRate)})`,
+		`~${usd(c.savedUsd)} saved`);
+}
 function renderKpis(s) {
 	const t = s.totals;
 	const frac = t.jevBudgetUsd > 0 ? t.jevSpentUsd / t.jevBudgetUsd : 0;
@@ -260,6 +266,7 @@ function renderKpis(s) {
 		kpi("Requests", `${int(t.routedRequests)} routed`, `${int(t.requests)} total · ${int(t.errors)} errors`),
 		cascadeKpi(s.cascade),
 		toolTrimKpi(s.toolTrim),
+		cacheKpi(s.cache),
 		kpi("Jev latency", `${ms(s.jevLatencyMs.p50)} p50`, `${ms(s.jevLatencyMs.p95)} p95`),
 		kpi("Jev spend vs budget", `${usd(t.jevSpentUsd)}`, `of ${usd(t.jevBudgetUsd)} · ${pct(frac)}`, meter));
 }
@@ -421,8 +428,29 @@ function trimSection(r) {
 	if (t.error) sec.append(el("div", { class: "err-text", text: `Tool trimming note: ${t.error}` }));
 	return sec;
 }
+function cacheBadge(r) {
+	const c = r.cache;
+	if (c.outcome === "hit") return el("span", { class: "badge hit", title: "Answered from the semantic cache; no upstream call was made.", text: "cache hit" });
+	return c.stored ? el("span", { class: "badge", title: "Cache miss; this answer was stored for later requests.", text: "cached" }) : null;
+}
+function cacheSection(r) {
+	const c = r.cache;
+	const sec = el("div", { class: "meta" }, el("div", { class: "label", text: "Answer cache" }));
+	sec.append(el("div", { text: `Outcome: ${c.outcome}` }));
+	sec.append(el("div", { text: `Best similarity: ${c.bestSimilarity === null ? "—" : c.bestSimilarity.toFixed(3)} · Jev match probability: ${c.matchProbability === null ? "—" : pct(c.matchProbability)} · ${int(c.candidates)} candidates` }));
+	if (c.sourceRequestId) sec.append(el("div", {}, document.createTextNode("Source request id: "), el("code", { text: c.sourceRequestId })));
+	sec.append(el("div", { text: `Lookup ${ms(c.lookupMs)} · Jev ${ms(c.jevLatencyMs)} · Jev cost ${usd(c.jevCostUsd)} · stored: ${c.stored ? "yes" : "no"}` }));
+	if (c.error) sec.append(el("div", { class: "err-text", text: `Cache note: ${c.error}` }));
+	return sec;
+}
 function modelCell(r) {
-	const td = cell(r.requestedModel === r.upstreamModel ? r.requestedModel : `${r.requestedModel} \u2192 ${r.upstreamModel}`);
+	const hit = r.cache?.outcome === "hit";
+	const up = hit ? `cache (${r.upstreamModel})` : r.upstreamModel;
+	const td = cell(r.requestedModel === up ? r.requestedModel : `${r.requestedModel} \u2192 ${up}`);
+	if (r.cache) {
+		const b = cacheBadge(r);
+		if (b) td.append(b);
+	}
 	if (r.toolTrim) td.append(trimBadge(r));
 	return td;
 }
@@ -466,6 +494,7 @@ function detailRow(r) {
 		box.append(cm);
 	}
 	if (r.toolTrim) box.append(trimSection(r));
+	if (r.cache) box.append(cacheSection(r));
 	return el("tr", { class: "detail" }, el("td", { colspan: "13" }, box));
 }
 function renderRequests(rows) {
@@ -478,7 +507,7 @@ function renderRequests(rows) {
 		const tr = el("tr");
 		const first = el("td");
 		let detail = null;
-		if (route || r.cascade || r.toolTrim) {
+		if (route || r.cascade || r.toolTrim || r.cache) {
 			const open = state.open.has(r.id);
 			const btn = el("button", { class: "exp", type: "button", "aria-expanded": String(open), "aria-label": "Show request details", text: open ? "−" : "+" });
 			btn.addEventListener("click", () => {

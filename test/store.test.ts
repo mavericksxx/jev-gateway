@@ -4,7 +4,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createStore } from "../src/store/db";
-import type { RequestRecord } from "../src/types";
+import type { CacheLookup, RequestRecord } from "../src/types";
 
 const a: RequestRecord = {
 	id: "a",
@@ -297,6 +297,83 @@ test("a pre-toolTrim database migrates without losing rows", () => {
 		expect(rows).toHaveLength(2);
 		expect(rows[1]).toMatchObject({ id: "o", costUsd: 0.5 });
 		expect(rows[1]).not.toHaveProperty("toolTrim");
+		store.close();
+	} finally {
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
+
+const hitLookup: CacheLookup = {
+	outcome: "hit",
+	candidates: 2,
+	bestSimilarity: 0.93,
+	matchProbability: 0.96,
+	sourceRequestId: "src",
+	jevLatencyMs: 300,
+	jevCostUsd: 0.0001,
+	lookupMs: 310,
+	stored: false,
+	error: null,
+};
+const missLookup: CacheLookup = {
+	outcome: "miss",
+	candidates: 0,
+	bestSimilarity: null,
+	matchProbability: null,
+	sourceRequestId: null,
+	jevLatencyMs: null,
+	jevCostUsd: null,
+	lookupMs: 12,
+	stored: true,
+	error: "embed failed",
+};
+
+test("cache lookups round-trip and the key is omitted otherwise", () => {
+	const store = createStore(":memory:");
+	store.insert({ ...a, id: "h", startedAt: 1, cache: hitLookup }, 0);
+	store.insert({ ...a, id: "m", startedAt: 2, cache: missLookup }, null);
+	store.insert({ ...a, id: "n", startedAt: 3 }, null);
+	const rows = store.recent(10);
+	expect(rows[0]).not.toHaveProperty("cache");
+	expect(rows[1]?.cache).toEqual(missLookup);
+	expect(rows[2]?.cache).toEqual(hitLookup);
+	expect(rows[2]?.costUsd).toBe(0);
+	store.close();
+});
+
+test("jevSpentUsd includes cache lookup cost", () => {
+	const store = createStore(":memory:");
+	store.insert(routed, null);
+	store.insert({ ...a, id: "h", cache: hitLookup }, 0);
+	store.insert({ ...a, id: "m", cache: missLookup }, null);
+	expect(store.jevSpentUsd()).toBeCloseTo(0.0021);
+	store.close();
+});
+
+test("a pre-cache database migrates without losing rows", () => {
+	const dir = mkdtempSync(join(tmpdir(), "jev-store-"));
+	const path = join(dir, "old.db");
+	try {
+		const old = new Database(path);
+		old.run(`CREATE TABLE requests (
+			id TEXT PRIMARY KEY, started_at INTEGER NOT NULL, latency_ms INTEGER NOT NULL,
+			endpoint TEXT NOT NULL, requested_model TEXT NOT NULL, upstream_model TEXT NOT NULL,
+			stream INTEGER NOT NULL, status INTEGER NOT NULL, input_tokens INTEGER,
+			output_tokens INTEGER, cache_creation_input_tokens INTEGER,
+			cache_read_input_tokens INTEGER, error TEXT, cost_usd REAL,
+			tooltrim_offered INTEGER, tooltrim_jev_cost_usd REAL
+		)`);
+		old.run(
+			"INSERT INTO requests (id, started_at, latency_ms, endpoint, requested_model, upstream_model, stream, status, cost_usd) VALUES ('o',1,2,'messages','m','m',0,200,0.5)",
+		);
+		old.close();
+		const store = createStore(path);
+		store.insert({ ...a, id: "n", startedAt: 2, cache: hitLookup }, 0);
+		const rows = store.recent(10);
+		expect(rows).toHaveLength(2);
+		expect(rows[1]).toMatchObject({ id: "o", costUsd: 0.5 });
+		expect(rows[1]).not.toHaveProperty("cache");
+		expect(rows[0]?.cache).toEqual(hitLookup);
 		store.close();
 	} finally {
 		rmSync(dir, { recursive: true, force: true });

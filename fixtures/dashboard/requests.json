@@ -579,7 +579,7 @@
 	{
 		"id": "3e855be0-7893-4a48-aa93-44e2dba1853b",
 		"startedAt": 1779998049554,
-		"latencyMs": 6124,
+		"latencyMs": 312,
 		"endpoint": "messages",
 		"stream": true,
 		"status": 200,
@@ -609,7 +609,19 @@
 			"jevCostUsd": 0.0000567,
 			"error": null
 		},
-		"costUsd": 0.014582,
+		"costUsd": 0,
+		"cache": {
+			"outcome": "hit",
+			"candidates": 2,
+			"bestSimilarity": 0.931,
+			"matchProbability": 0.962,
+			"sourceRequestId": "c3e5bbd0-48a3-4056-a96c-7cddc30a5946",
+			"jevLatencyMs": 288,
+			"jevCostUsd": 0.0000612,
+			"lookupMs": 301,
+			"stored": false,
+			"error": null
+		},
 		"baselineCostUsd": 0.058328
 	},
 	{
@@ -749,6 +761,18 @@
 			"error": null
 		},
 		"costUsd": 0.034803,
+		"cache": {
+			"outcome": "miss",
+			"candidates": 0,
+			"bestSimilarity": null,
+			"matchProbability": null,
+			"sourceRequestId": null,
+			"jevLatencyMs": null,
+			"jevCostUsd": null,
+			"error": null,
+			"lookupMs": 14,
+			"stored": true
+		},
 		"baselineCostUsd": 0.046404
 	},
 	{
@@ -845,7 +869,7 @@
 	{
 		"id": "c65c0e33-c40e-473b-bbe3-f3273681986f",
 		"startedAt": 1779996935021,
-		"latencyMs": 2197,
+		"latencyMs": 405,
 		"endpoint": "messages",
 		"stream": true,
 		"status": 200,
@@ -858,8 +882,20 @@
 			"cache_creation_input_tokens": 0,
 			"cache_read_input_tokens": 0
 		},
-		"costUsd": 0.016998,
-		"baselineCostUsd": 0.016998
+		"costUsd": 0,
+		"cache": {
+			"outcome": "hit",
+			"candidates": 1,
+			"bestSimilarity": 0.874,
+			"matchProbability": 0.915,
+			"sourceRequestId": "4c64dcf1-e912-4af1-b2d8-1c8c7f5b1ac2",
+			"jevLatencyMs": 361,
+			"jevCostUsd": 0.0000534,
+			"lookupMs": 392,
+			"stored": false,
+			"error": null
+		},
+		"baselineCostUsd": 0.011332
 	},
 	{
 		"id": "74cd7a12-13d3-4edd-81e3-7de145e9c0a4",
@@ -1113,6 +1149,18 @@
 			"cache_read_input_tokens": 0
 		},
 		"costUsd": 0.017754,
+		"cache": {
+			"outcome": "miss",
+			"candidates": 3,
+			"bestSimilarity": 0.883,
+			"matchProbability": 0.412,
+			"sourceRequestId": null,
+			"jevLatencyMs": 472,
+			"jevCostUsd": 0.0000871,
+			"error": null,
+			"lookupMs": 489,
+			"stored": true
+		},
 		"baselineCostUsd": 0.017754
 	},
 	{

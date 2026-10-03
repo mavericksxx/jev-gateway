@@ -8,13 +8,13 @@
 		"requests": 40,
 		"routedRequests": 32,
 		"errors": 4,
-		"actualCostUsd": 1.025881,
-		"baselineCostUsd": 1.4631970000000007,
-		"savedUsd": 0.4373160000000007,
-		"savedPct": 0.2988770479983218,
-		"jevSpentUsd": 0.0028266,
+		"actualCostUsd": 0.9943010000000001,
+		"baselineCostUsd": 1.4575310000000008,
+		"savedUsd": 0.4632300000000007,
+		"savedPct": 0.31781828311027377,
+		"jevSpentUsd": 0.0030283000000000003,
 		"jevBudgetUsd": 0.01,
-		"netSavedUsd": 0.4344894000000007
+		"netSavedUsd": 0.4602017000000007
 	},
 	"jevLatencyMs": {
 		"p50": 419,
@@ -24,8 +24,8 @@
 		{
 			"tier": "haiku",
 			"model": "claude-haiku-4-5",
-			"requests": 11,
-			"costUsd": 0.108673
+			"requests": 10,
+			"costUsd": 0.09409100000000001
 		},
 		{
 			"tier": "sonnet-low",
@@ -79,6 +79,13 @@
 		"estimatedTokensSaved": 4350,
 		"estimatedSavedUsd": 0.01516,
 		"jevCostUsd": 0.00015329999999999999
+	},
+	"cache": {
+		"lookups": 4,
+		"hits": 2,
+		"savedUsd": 0.06966,
+		"jevCostUsd": 0.0002017,
+		"hitRate": 0.5
 	},
 	"reasons": {
 		"jev": 20,
@@ -355,8 +362,8 @@
 		{
 			"bucketStart": 1779996900000,
 			"requests": 1,
-			"actualCostUsd": 0.016998,
-			"baselineCostUsd": 0.016998
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0.011332
 		},
 		{
 			"bucketStart": 1779996960000,
@@ -469,7 +476,7 @@
 		{
 			"bucketStart": 1779998040000,
 			"requests": 1,
-			"actualCostUsd": 0.014582,
+			"actualCostUsd": 0,
 			"baselineCostUsd": 0.058328
 		},
 		{
