@@ -105,6 +105,11 @@ tr.detail td { white-space: normal; background: var(--bg); }
 .meta code { font-family: var(--mono); }
 .badge { display: inline-block; margin-left: 6px; padding: 0 6px; border: 1px solid var(--border); border-radius: 9px; font-size: 11px; color: var(--ink-2); }
 .badge.ok { color: var(--good); border-color: var(--good); }
+.trim { display: grid; grid-template-columns: minmax(0, max-content) minmax(40px, 160px) max-content; gap: 3px 8px; align-items: center; margin-top: 4px; }
+.trim .bar { height: 6px; background: var(--track); border-radius: 3px; overflow: hidden; }
+.trim .bar i { display: block; height: 100%; background: var(--ink-3); border-radius: 3px; }
+.trim .cut i { background: var(--baseline); }
+.trim .nm { font-family: var(--mono); overflow-wrap: anywhere; }
 .err-text { color: var(--bad); }
 </style>
 </head>
@@ -237,6 +242,11 @@ function cascadeKpi(c) {
 	return kpi("Cheap-first", `${int(c.accepted)} of ${int(c.attempted)} kept (${pct(c.accepted / c.attempted)})`,
 		`${int(c.escalated)} escalated · ${usd(c.wastedUsd)} wasted`);
 }
+function toolTrimKpi(t) {
+	if (!t.requests) return kpi("Tool trimming", "not used", "Enable per request with x-gateway-trim-tools: on");
+	return kpi("Tool trimming", `${int(t.toolsRemoved)} of ${int(t.toolsOffered)} tools trimmed`,
+		`${int(t.trimmed)} requests · ~${int(t.estimatedTokensSaved)} tokens · ~${usd(t.estimatedSavedUsd)} saved`);
+}
 function renderKpis(s) {
 	const t = s.totals;
 	const frac = t.jevBudgetUsd > 0 ? t.jevSpentUsd / t.jevBudgetUsd : 0;
@@ -249,6 +259,7 @@ function renderKpis(s) {
 		kpi("Net saved after Jev", usd(t.netSavedUsd), `Jev spent ${usd(t.jevSpentUsd)}`, null, t.netSavedUsd > 0 ? "good" : ""),
 		kpi("Requests", `${int(t.routedRequests)} routed`, `${int(t.requests)} total · ${int(t.errors)} errors`),
 		cascadeKpi(s.cascade),
+		toolTrimKpi(s.toolTrim),
 		kpi("Jev latency", `${ms(s.jevLatencyMs.p50)} p50`, `${ms(s.jevLatencyMs.p95)} p95`),
 		kpi("Jev spend vs budget", `${usd(t.jevSpentUsd)}`, `of ${usd(t.jevBudgetUsd)} · ${pct(frac)}`, meter));
 }
@@ -382,10 +393,46 @@ function tierCell(r) {
 	}
 	return td;
 }
+function trimBadge(r) {
+	const t = r.toolTrim;
+	return t.removed.length
+		? el("span", { class: "badge", title: `Tool trimming: ${t.removed.length} of ${t.offered} tool definitions were not sent upstream.`, text: `\u2212${t.removed.length} tools` })
+		: el("span", { class: "badge ok", title: `Tool trimming: all ${t.offered} tool definitions were kept.`, text: "tools \u2713" });
+}
+function trimSection(r) {
+	const t = r.toolTrim;
+	const sec = el("div", { class: "meta" }, el("div", { class: "label", text: "Tool trimming" }));
+	sec.append(el("div", { text: `Kept ${int(t.kept)} of ${int(t.offered)} tools` }));
+	if (t.removed.length) sec.append(el("div", { text: `Removed: ${t.removed.join(", ")}` }));
+	if (t.scores) {
+		const removed = new Set(t.removed);
+		const all = Object.entries(t.scores).sort((a, b) => b[1] - a[1]);
+		const grid = el("div", { class: "trim" });
+		for (const [name, v] of all.slice(0, 20)) {
+			grid.append(
+				el("span", { class: "nm", text: name }),
+				el("div", { class: `bar${removed.has(name) ? " cut" : ""}` }, el("i", { style: `width:${(Math.max(0, Math.min(1, v)) * 100).toFixed(1)}%` })),
+				el("span", { text: v.toFixed(2) }));
+		}
+		sec.append(el("div", { text: "Jev score per tool (orange = removed)" }), grid);
+		if (all.length > 20) sec.append(el("div", { text: `+${all.length - 20} more` }));
+	}
+	sec.append(el("div", { text: `~${int(t.estimatedTokensSaved)} tokens saved · Jev cost ${usd(t.jevCostUsd)} · ${ms(t.jevLatencyMs)}` }));
+	if (t.error) sec.append(el("div", { class: "err-text", text: `Tool trimming note: ${t.error}` }));
+	return sec;
+}
+function modelCell(r) {
+	const td = cell(r.requestedModel === r.upstreamModel ? r.requestedModel : `${r.requestedModel} \u2192 ${r.upstreamModel}`);
+	if (r.toolTrim) td.append(trimBadge(r));
+	return td;
+}
 function detailRow(r) {
 	const box = el("div", {});
 	const route = r.route;
-	if (route.probabilities) {
+	if (!route) {
+		box.append(el("div", { class: "meta" }, el("div", {}, document.createTextNode("Request id: "), el("code", { text: r.id }))));
+		if (r.error) box.append(el("div", { class: "meta err-text", text: `Request error: ${r.error}` }));
+	} else if (route.probabilities) {
 		const grid = el("div", { class: "probs" });
 		for (const t of TIERS) {
 			const p = route.probabilities[t];
@@ -400,12 +447,14 @@ function detailRow(r) {
 	} else {
 		box.append(el("div", { text: "Jev was not consulted for this decision." }));
 	}
+	if (route) {
 	const meta = el("div", { class: "meta" });
 	if (route.error) meta.append(el("div", { class: "err-text", text: `Routing error: ${route.error}` }));
 	if (r.error) meta.append(el("div", { class: "err-text", text: `Request error: ${r.error}` }));
 	meta.append(el("div", {}, document.createTextNode("Request id: "), el("code", { text: r.id })));
 	if (route.jevCostUsd !== null) meta.append(el("div", { text: `Jev cost ${usd(route.jevCostUsd)}` }));
 	box.append(meta);
+	}
 	const c = r.cascade;
 	if (c) {
 		const cm = el("div", { class: "meta" }, el("div", { class: "label", text: "Cheap-first" }));
@@ -416,6 +465,7 @@ function detailRow(r) {
 		if (c.error) cm.append(el("div", { class: "err-text", text: `Cheap-first note: ${c.error}` }));
 		box.append(cm);
 	}
+	if (r.toolTrim) box.append(trimSection(r));
 	return el("tr", { class: "detail" }, el("td", { colspan: "13" }, box));
 }
 function renderRequests(rows) {
@@ -428,9 +478,9 @@ function renderRequests(rows) {
 		const tr = el("tr");
 		const first = el("td");
 		let detail = null;
-		if (route) {
+		if (route || r.cascade || r.toolTrim) {
 			const open = state.open.has(r.id);
-			const btn = el("button", { class: "exp", type: "button", "aria-expanded": String(open), "aria-label": "Show routing decision", text: open ? "−" : "+" });
+			const btn = el("button", { class: "exp", type: "button", "aria-expanded": String(open), "aria-label": "Show request details", text: open ? "−" : "+" });
 			btn.addEventListener("click", () => {
 				const nowOpen = btn.getAttribute("aria-expanded") !== "true";
 				btn.setAttribute("aria-expanded", String(nowOpen));
@@ -443,7 +493,7 @@ function renderRequests(rows) {
 		}
 		tr.append(first,
 			cell(clock(r.startedAt, true)),
-			cell(r.requestedModel === r.upstreamModel ? r.requestedModel : `${r.requestedModel} → ${r.upstreamModel}`),
+			modelCell(r),
 			route ? tierCell(r) : cell("—"),
 			cell(route ? route.reason : "—"),
 			cell(route ? (route.confidence === null ? "—" : route.confidence.toFixed(2)) : "—", "num"),

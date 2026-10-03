@@ -72,7 +72,39 @@
 			"wastedCostUsd": 0,
 			"error": null
 		},
-		"baselineCostUsd": 0.022256
+		"toolTrim": {
+			"offered": 12,
+			"kept": 4,
+			"removed": [
+				"jira_search",
+				"calendar_list_events",
+				"email_send",
+				"docker_logs",
+				"k8s_get_pods",
+				"s3_list_objects",
+				"stripe_refund",
+				"notion_search"
+			],
+			"estimatedTokensSaved": 1840,
+			"scores": {
+				"github_create_issue": 0.6,
+				"slack_post_message": 0.62,
+				"fs_read_file": 0.64,
+				"sql_query": 0.6599999999999999,
+				"jira_search": 0.07,
+				"calendar_list_events": 0.08,
+				"email_send": 0.09,
+				"docker_logs": 0.1,
+				"k8s_get_pods": 0.11,
+				"s3_list_objects": 0.12,
+				"stripe_refund": 0.13,
+				"notion_search": 0.14
+			},
+			"jevLatencyMs": 412,
+			"jevCostUsd": 0.00004788,
+			"error": null
+		},
+		"baselineCostUsd": 0.029616000000000003
 	},
 	{
 		"id": "c8a32ca1-6a3c-433b-b273-a1d781cc6da8",
@@ -169,7 +201,32 @@
 			"cache_read_input_tokens": 0
 		},
 		"costUsd": 0.02793,
-		"baselineCostUsd": 0.02793
+		"toolTrim": {
+			"offered": 8,
+			"kept": 3,
+			"removed": [
+				"sql_query",
+				"jira_search",
+				"calendar_list_events",
+				"email_send",
+				"docker_logs"
+			],
+			"estimatedTokensSaved": 1120,
+			"scores": {
+				"github_create_issue": 0.6,
+				"slack_post_message": 0.62,
+				"fs_read_file": 0.64,
+				"sql_query": 0.06,
+				"jira_search": 0.07,
+				"calendar_list_events": 0.08,
+				"email_send": 0.09,
+				"docker_logs": 0.1
+			},
+			"jevLatencyMs": 412,
+			"jevCostUsd": 0.000036120000000000007,
+			"error": null
+		},
+		"baselineCostUsd": 0.03017
 	},
 	{
 		"id": "83858931-86c8-43c0-8eb2-dc4d1f6e70b4",
@@ -252,6 +309,16 @@
 			"error": null
 		},
 		"costUsd": 0.026541,
+		"toolTrim": {
+			"offered": 6,
+			"kept": 6,
+			"removed": [],
+			"estimatedTokensSaved": 0,
+			"scores": null,
+			"jevLatencyMs": null,
+			"jevCostUsd": null,
+			"error": "timeout"
+		},
 		"baselineCostUsd": 0.035388
 	},
 	{
@@ -340,7 +407,34 @@
 			"wastedCostUsd": 0.004426,
 			"error": null
 		},
-		"baselineCostUsd": 0.047564
+		"toolTrim": {
+			"offered": 10,
+			"kept": 5,
+			"removed": [
+				"calendar_list_events",
+				"email_send",
+				"docker_logs",
+				"k8s_get_pods",
+				"s3_list_objects"
+			],
+			"estimatedTokensSaved": 1390,
+			"scores": {
+				"github_create_issue": 0.6,
+				"slack_post_message": 0.62,
+				"fs_read_file": 0.64,
+				"sql_query": 0.6599999999999999,
+				"jira_search": 0.6799999999999999,
+				"calendar_list_events": 0.08,
+				"email_send": 0.09,
+				"docker_logs": 0.1,
+				"k8s_get_pods": 0.11,
+				"s3_list_objects": 0.12
+			},
+			"jevLatencyMs": 412,
+			"jevCostUsd": 0.000042,
+			"error": null
+		},
+		"baselineCostUsd": 0.053124000000000005
 	},
 	{
 		"id": "07548e7d-8819-4bca-86da-fba4a9eaf5a5",
@@ -391,6 +485,22 @@
 			},
 			"wastedCostUsd": 0.010975,
 			"error": "stop_reason max_tokens"
+		},
+		"toolTrim": {
+			"offered": 5,
+			"kept": 5,
+			"removed": [],
+			"estimatedTokensSaved": 0,
+			"scores": {
+				"github_create_issue": 0.6,
+				"slack_post_message": 0.62,
+				"fs_read_file": 0.64,
+				"sql_query": 0.6599999999999999,
+				"jira_search": 0.6799999999999999
+			},
+			"jevLatencyMs": 412,
+			"jevCostUsd": 0.0000273,
+			"error": null
 		},
 		"baselineCostUsd": 0.06794
 	},

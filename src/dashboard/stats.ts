@@ -1,4 +1,4 @@
-import { costUsd } from "../pricing";
+import { costUsd, PRICES } from "../pricing";
 import { ALL_TIERS, TIERS, type Tier } from "../routing/tiers";
 import type { StoredRequest } from "../store/db";
 import type { RequestsResponse, StatsResponse } from "./types";
@@ -16,8 +16,20 @@ export function baselineCostUsd(
 	baselineTier: Tier,
 ): number | null {
 	if (!row.usage) return null;
-	if (!row.route) return row.costUsd;
-	return costUsd(TIERS[baselineTier].model, row.usage);
+	const base = row.route
+		? costUsd(TIERS[baselineTier].model, row.usage)
+		: row.costUsd;
+	if (!row.toolTrim) return base;
+	return (base ?? 0) + trimAddBack(row, baselineTier);
+}
+
+/** USD of the tool-definition tokens that trimming kept out of the request. */
+function trimAddBack(row: StoredRequest, baselineTier: Tier): number {
+	if (!row.toolTrim) return 0;
+	const model = row.route ? TIERS[baselineTier].model : row.upstreamModel;
+	const price = PRICES[model];
+	if (!price) return 0;
+	return (row.toolTrim.estimatedTokensSaved * price.input) / 1_000_000;
 }
 
 function nearestRank(sorted: number[], p: number): number | null {
@@ -51,6 +63,15 @@ export function computeStats(
 		jevCostUsd: 0,
 	};
 	const reasons = { jev: 0, "low-confidence": 0, sticky: 0, fallback: 0 };
+	const toolTrim = {
+		requests: 0,
+		trimmed: 0,
+		toolsOffered: 0,
+		toolsRemoved: 0,
+		estimatedTokensSaved: 0,
+		estimatedSavedUsd: 0,
+		jevCostUsd: 0,
+	};
 	let min = Number.POSITIVE_INFINITY;
 	let max = Number.NEGATIVE_INFINITY;
 
@@ -62,6 +83,16 @@ export function computeStats(
 		if (r.status >= 400) errors++;
 		min = Math.min(min, r.startedAt);
 		max = Math.max(max, r.startedAt);
+		if (r.toolTrim) {
+			toolTrim.requests++;
+			if (r.toolTrim.removed.length > 0) toolTrim.trimmed++;
+			toolTrim.toolsOffered += r.toolTrim.offered;
+			toolTrim.toolsRemoved += r.toolTrim.removed.length;
+			toolTrim.estimatedTokensSaved += r.toolTrim.estimatedTokensSaved;
+			toolTrim.estimatedSavedUsd += r.usage ? trimAddBack(r, baselineTier) : 0;
+			toolTrim.jevCostUsd += r.toolTrim.jevCostUsd ?? 0;
+			jevSpent += r.toolTrim.jevCostUsd ?? 0;
+		}
 		if (r.cascade) {
 			cascade.attempted++;
 			if (r.cascade.accepted) cascade.accepted++;
@@ -138,16 +169,7 @@ export function computeStats(
 			costUsd: mix.get(tier)?.costUsd ?? 0,
 		})),
 		cascade,
-		// Placeholder until the tool-trim stats land in Phase 5.
-		toolTrim: {
-			requests: 0,
-			trimmed: 0,
-			toolsOffered: 0,
-			toolsRemoved: 0,
-			estimatedTokensSaved: 0,
-			estimatedSavedUsd: 0,
-			jevCostUsd: 0,
-		},
+		toolTrim,
 		reasons,
 		bucketMs,
 		timeline,

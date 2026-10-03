@@ -9,12 +9,12 @@
 		"routedRequests": 32,
 		"errors": 4,
 		"actualCostUsd": 1.025881,
-		"baselineCostUsd": 1.448037000000001,
-		"savedUsd": 0.42215600000000086,
-		"savedPct": 0.29153674940626556,
-		"jevSpentUsd": 0.0026733,
+		"baselineCostUsd": 1.4631970000000007,
+		"savedUsd": 0.4373160000000007,
+		"savedPct": 0.2988770479983218,
+		"jevSpentUsd": 0.0028266,
 		"jevBudgetUsd": 0.01,
-		"netSavedUsd": 0.4194827000000009
+		"netSavedUsd": 0.4344894000000007
 	},
 	"jevLatencyMs": {
 		"p50": 419,
@@ -70,6 +70,15 @@
 		"escalated": 2,
 		"wastedUsd": 0.015401000000000001,
 		"jevCostUsd": 0.00015000000000000001
+	},
+	"toolTrim": {
+		"requests": 5,
+		"trimmed": 3,
+		"toolsOffered": 41,
+		"toolsRemoved": 18,
+		"estimatedTokensSaved": 4350,
+		"estimatedSavedUsd": 0.01516,
+		"jevCostUsd": 0.00015329999999999999
 	},
 	"reasons": {
 		"jev": 20,
@@ -515,7 +524,7 @@
 			"bucketStart": 1779998580000,
 			"requests": 1,
 			"actualCostUsd": 0.028208,
-			"baselineCostUsd": 0.047564
+			"baselineCostUsd": 0.053124000000000005
 		},
 		{
 			"bucketStart": 1779998640000,
@@ -569,7 +578,7 @@
 			"bucketStart": 1779999120000,
 			"requests": 1,
 			"actualCostUsd": 0.02793,
-			"baselineCostUsd": 0.02793
+			"baselineCostUsd": 0.03017
 		},
 		{
 			"bucketStart": 1779999180000,
@@ -611,7 +620,7 @@
 			"bucketStart": 1779999540000,
 			"requests": 1,
 			"actualCostUsd": 0.005564,
-			"baselineCostUsd": 0.022256
+			"baselineCostUsd": 0.029616000000000003
 		},
 		{
 			"bucketStart": 1779999600000,

@@ -45,6 +45,14 @@ interface Row {
 	cascade_wasted_usage: string | null;
 	cascade_wasted_cost_usd: number | null;
 	cascade_error: string | null;
+	tooltrim_offered: number | null;
+	tooltrim_kept: number | null;
+	tooltrim_removed: string | null;
+	tooltrim_tokens_saved: number | null;
+	tooltrim_scores: string | null;
+	tooltrim_jev_latency_ms: number | null;
+	tooltrim_jev_cost_usd: number | null;
+	tooltrim_error: string | null;
 }
 
 const ROUTE_COLUMNS: Record<string, string> = {
@@ -64,6 +72,14 @@ const ROUTE_COLUMNS: Record<string, string> = {
 	cascade_wasted_usage: "TEXT",
 	cascade_wasted_cost_usd: "REAL",
 	cascade_error: "TEXT",
+	tooltrim_offered: "INTEGER",
+	tooltrim_kept: "INTEGER",
+	tooltrim_removed: "TEXT",
+	tooltrim_tokens_saved: "INTEGER",
+	tooltrim_scores: "TEXT",
+	tooltrim_jev_latency_ms: "INTEGER",
+	tooltrim_jev_cost_usd: "REAL",
+	tooltrim_error: "TEXT",
 };
 
 /** Opens (and creates if needed) the database. Tests pass ":memory:". */
@@ -109,7 +125,9 @@ export function createStore(path: string): Store {
 			jev_latency_ms, jev_cost_usd, route_error,
 			cascade_first_tier, cascade_escalation_tier, cascade_accepted,
 			cascade_pass_probability, cascade_jev_latency_ms, cascade_jev_cost_usd,
-			cascade_wasted_usage, cascade_wasted_cost_usd, cascade_error
+			cascade_wasted_usage, cascade_wasted_cost_usd, cascade_error,
+			tooltrim_offered, tooltrim_kept, tooltrim_removed, tooltrim_tokens_saved,
+			tooltrim_scores, tooltrim_jev_latency_ms, tooltrim_jev_cost_usd, tooltrim_error
 		) VALUES (
 			$id, $started_at, $latency_ms, $endpoint, $requested_model, $upstream_model,
 			$stream, $status, $input_tokens, $output_tokens, $cache_creation_input_tokens,
@@ -118,11 +136,13 @@ export function createStore(path: string): Store {
 			$jev_latency_ms, $jev_cost_usd, $route_error,
 			$cascade_first_tier, $cascade_escalation_tier, $cascade_accepted,
 			$cascade_pass_probability, $cascade_jev_latency_ms, $cascade_jev_cost_usd,
-			$cascade_wasted_usage, $cascade_wasted_cost_usd, $cascade_error
+			$cascade_wasted_usage, $cascade_wasted_cost_usd, $cascade_error,
+			$tooltrim_offered, $tooltrim_kept, $tooltrim_removed, $tooltrim_tokens_saved,
+			$tooltrim_scores, $tooltrim_jev_latency_ms, $tooltrim_jev_cost_usd, $tooltrim_error
 		)`,
 	);
 	const spentStmt = db.query<{ total: number | null }, []>(
-		"SELECT COALESCE(SUM(jev_cost_usd), 0) + COALESCE(SUM(cascade_jev_cost_usd), 0) AS total FROM requests",
+		"SELECT COALESCE(SUM(jev_cost_usd), 0) + COALESCE(SUM(cascade_jev_cost_usd), 0) + COALESCE(SUM(tooltrim_jev_cost_usd), 0) AS total FROM requests",
 	);
 	const recentStmt = db.query<Row, [number]>(
 		"SELECT * FROM requests ORDER BY started_at DESC, rowid DESC LIMIT ?",
@@ -166,6 +186,18 @@ export function createStore(path: string): Store {
 					: null,
 				$cascade_wasted_cost_usd: r.cascade?.wastedCostUsd ?? null,
 				$cascade_error: r.cascade?.error ?? null,
+				$tooltrim_offered: r.toolTrim?.offered ?? null,
+				$tooltrim_kept: r.toolTrim?.kept ?? null,
+				$tooltrim_removed: r.toolTrim
+					? JSON.stringify(r.toolTrim.removed)
+					: null,
+				$tooltrim_tokens_saved: r.toolTrim?.estimatedTokensSaved ?? null,
+				$tooltrim_scores: r.toolTrim?.scores
+					? JSON.stringify(r.toolTrim.scores)
+					: null,
+				$tooltrim_jev_latency_ms: r.toolTrim?.jevLatencyMs ?? null,
+				$tooltrim_jev_cost_usd: r.toolTrim?.jevCostUsd ?? null,
+				$tooltrim_error: r.toolTrim?.error ?? null,
 			});
 		},
 		recent(limit) {
@@ -220,6 +252,24 @@ export function createStore(path: string): Store {
 									: null,
 								wastedCostUsd: row.cascade_wasted_cost_usd ?? 0,
 								error: row.cascade_error,
+							},
+						}
+					: {}),
+				...(row.tooltrim_offered !== null
+					? {
+							toolTrim: {
+								offered: row.tooltrim_offered,
+								kept: row.tooltrim_kept ?? row.tooltrim_offered,
+								removed: row.tooltrim_removed
+									? JSON.parse(row.tooltrim_removed)
+									: [],
+								estimatedTokensSaved: row.tooltrim_tokens_saved ?? 0,
+								scores: row.tooltrim_scores
+									? JSON.parse(row.tooltrim_scores)
+									: null,
+								jevLatencyMs: row.tooltrim_jev_latency_ms,
+								jevCostUsd: row.tooltrim_jev_cost_usd,
+								error: row.tooltrim_error,
 							},
 						}
 					: {}),
