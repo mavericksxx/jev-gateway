@@ -1,0 +1,622 @@
+{
+	"generatedAt": 1779999960000,
+	"baseline": {
+		"tier": "opus-high",
+		"model": "claude-opus-5-5"
+	},
+	"totals": {
+		"requests": 41,
+		"routedRequests": 32,
+		"errors": 4,
+		"actualCostUsd": 1.149837,
+		"baselineCostUsd": 1.868773,
+		"savedUsd": 0.718936,
+		"savedPct": 0.38471018149341835,
+		"jevSpentUsd": 0.0025233,
+		"jevBudgetUsd": 0.01,
+		"netSavedUsd": 0.7164127
+	},
+	"jevLatencyMs": {
+		"p50": 419,
+		"p95": 731
+	},
+	"tierMix": [
+		{
+			"tier": "haiku",
+			"model": "claude-haiku-4-5",
+			"requests": 8,
+			"costUsd": 0.0835
+		},
+		{
+			"tier": "sonnet-low",
+			"model": "claude-sonnet-5-5",
+			"requests": 11,
+			"costUsd": 0.349212
+		},
+		{
+			"tier": "sonnet-high",
+			"model": "claude-sonnet-5-5",
+			"requests": 8,
+			"costUsd": 0.228192
+		},
+		{
+			"tier": "opus-low",
+			"model": "claude-opus-5-5",
+			"requests": 3,
+			"costUsd": 0.171455
+		},
+		{
+			"tier": "opus-medium",
+			"model": "claude-opus-5-5",
+			"requests": 1,
+			"costUsd": 0.06226
+		},
+		{
+			"tier": "opus-high",
+			"model": "claude-opus-5-5",
+			"requests": 1,
+			"costUsd": 0.089225
+		},
+		{
+			"tier": "fable-high",
+			"model": "claude-fable-5-1",
+			"requests": 0,
+			"costUsd": 0
+		}
+	],
+	"reasons": {
+		"jev": 20,
+		"sticky": 6,
+		"low-confidence": 3,
+		"fallback": 3
+	},
+	"bucketMs": 60000,
+	"timeline": [
+		{
+			"bucketStart": 1779994260000,
+			"requests": 1,
+			"actualCostUsd": 0.053695,
+			"baselineCostUsd": 0.053695
+		},
+		{
+			"bucketStart": 1779994320000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779994380000,
+			"requests": 1,
+			"actualCostUsd": 0.032475,
+			"baselineCostUsd": 0.032475
+		},
+		{
+			"bucketStart": 1779994440000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779994500000,
+			"requests": 1,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779994560000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779994620000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779994680000,
+			"requests": 1,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779994740000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779994800000,
+			"requests": 1,
+			"actualCostUsd": 0.01357,
+			"baselineCostUsd": 0.01357
+		},
+		{
+			"bucketStart": 1779994860000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779994920000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779994980000,
+			"requests": 1,
+			"actualCostUsd": 0.030216,
+			"baselineCostUsd": 0.05036
+		},
+		{
+			"bucketStart": 1779995040000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779995100000,
+			"requests": 1,
+			"actualCostUsd": 0.06226,
+			"baselineCostUsd": 0.06226
+		},
+		{
+			"bucketStart": 1779995160000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779995220000,
+			"requests": 1,
+			"actualCostUsd": 0.012771,
+			"baselineCostUsd": 0.012771
+		},
+		{
+			"bucketStart": 1779995280000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779995340000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779995400000,
+			"requests": 1,
+			"actualCostUsd": 0.007027,
+			"baselineCostUsd": 0.035135
+		},
+		{
+			"bucketStart": 1779995460000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779995520000,
+			"requests": 1,
+			"actualCostUsd": 0.017055,
+			"baselineCostUsd": 0.085275
+		},
+		{
+			"bucketStart": 1779995580000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779995640000,
+			"requests": 1,
+			"actualCostUsd": 0.032295,
+			"baselineCostUsd": 0.053825
+		},
+		{
+			"bucketStart": 1779995700000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779995760000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779995820000,
+			"requests": 1,
+			"actualCostUsd": 0.017754,
+			"baselineCostUsd": 0.017754
+		},
+		{
+			"bucketStart": 1779995880000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779995940000,
+			"requests": 1,
+			"actualCostUsd": 0.017334,
+			"baselineCostUsd": 0.02889
+		},
+		{
+			"bucketStart": 1779996000000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779996060000,
+			"requests": 1,
+			"actualCostUsd": 0.03008,
+			"baselineCostUsd": 0.03008
+		},
+		{
+			"bucketStart": 1779996120000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779996180000,
+			"requests": 1,
+			"actualCostUsd": 0.089225,
+			"baselineCostUsd": 0.089225
+		},
+		{
+			"bucketStart": 1779996240000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779996300000,
+			"requests": 1,
+			"actualCostUsd": 0.010614,
+			"baselineCostUsd": 0.01769
+		},
+		{
+			"bucketStart": 1779996360000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779996420000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779996480000,
+			"requests": 1,
+			"actualCostUsd": 0.031908,
+			"baselineCostUsd": 0.05318
+		},
+		{
+			"bucketStart": 1779996540000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779996600000,
+			"requests": 1,
+			"actualCostUsd": 0.020627,
+			"baselineCostUsd": 0.103135
+		},
+		{
+			"bucketStart": 1779996660000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779996720000,
+			"requests": 1,
+			"actualCostUsd": 0.015121,
+			"baselineCostUsd": 0.075605
+		},
+		{
+			"bucketStart": 1779996780000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779996840000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779996900000,
+			"requests": 1,
+			"actualCostUsd": 0.016998,
+			"baselineCostUsd": 0.016998
+		},
+		{
+			"bucketStart": 1779996960000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997020000,
+			"requests": 1,
+			"actualCostUsd": 0.022386,
+			"baselineCostUsd": 0.03731
+		},
+		{
+			"bucketStart": 1779997080000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997140000,
+			"requests": 1,
+			"actualCostUsd": 0.014415,
+			"baselineCostUsd": 0.014415
+		},
+		{
+			"bucketStart": 1779997200000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997260000,
+			"requests": 1,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997320000,
+			"requests": 1,
+			"actualCostUsd": 0.032355,
+			"baselineCostUsd": 0.032355
+		},
+		{
+			"bucketStart": 1779997380000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997440000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997500000,
+			"requests": 1,
+			"actualCostUsd": 0.034803,
+			"baselineCostUsd": 0.058005
+		},
+		{
+			"bucketStart": 1779997560000,
+			"requests": 1,
+			"actualCostUsd": 0.027582,
+			"baselineCostUsd": 0.04597
+		},
+		{
+			"bucketStart": 1779997620000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997680000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997740000,
+			"requests": 1,
+			"actualCostUsd": 0.030384,
+			"baselineCostUsd": 0.05064
+		},
+		{
+			"bucketStart": 1779997800000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997860000,
+			"requests": 1,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997920000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779997980000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779998040000,
+			"requests": 1,
+			"actualCostUsd": 0.014582,
+			"baselineCostUsd": 0.07291
+		},
+		{
+			"bucketStart": 1779998100000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779998160000,
+			"requests": 1,
+			"actualCostUsd": 0.049584,
+			"baselineCostUsd": 0.08264
+		},
+		{
+			"bucketStart": 1779998220000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779998280000,
+			"requests": 1,
+			"actualCostUsd": 0.041475,
+			"baselineCostUsd": 0.069125
+		},
+		{
+			"bucketStart": 1779998340000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779998400000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779998460000,
+			"requests": 1,
+			"actualCostUsd": 0.050955,
+			"baselineCostUsd": 0.084925
+		},
+		{
+			"bucketStart": 1779998520000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779998580000,
+			"requests": 1,
+			"actualCostUsd": 0.035673,
+			"baselineCostUsd": 0.059455
+		},
+		{
+			"bucketStart": 1779998640000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779998700000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779998760000,
+			"requests": 1,
+			"actualCostUsd": 0.009088,
+			"baselineCostUsd": 0.04544
+		},
+		{
+			"bucketStart": 1779998820000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779998880000,
+			"requests": 1,
+			"actualCostUsd": 0.026541,
+			"baselineCostUsd": 0.044235
+		},
+		{
+			"bucketStart": 1779998940000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779999000000,
+			"requests": 1,
+			"actualCostUsd": 0.048561,
+			"baselineCostUsd": 0.080935
+		},
+		{
+			"bucketStart": 1779999060000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779999120000,
+			"requests": 1,
+			"actualCostUsd": 0.02793,
+			"baselineCostUsd": 0.02793
+		},
+		{
+			"bucketStart": 1779999180000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779999240000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779999300000,
+			"requests": 1,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779999360000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779999420000,
+			"requests": 1,
+			"actualCostUsd": 0.047646,
+			"baselineCostUsd": 0.07941
+		},
+		{
+			"bucketStart": 1779999480000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779999540000,
+			"requests": 1,
+			"actualCostUsd": 0.039447,
+			"baselineCostUsd": 0.065745
+		},
+		{
+			"bucketStart": 1779999600000,
+			"requests": 0,
+			"actualCostUsd": 0,
+			"baselineCostUsd": 0
+		},
+		{
+			"bucketStart": 1779999660000,
+			"requests": 1,
+			"actualCostUsd": 0.085405,
+			"baselineCostUsd": 0.085405
+		}
+	]
+}
