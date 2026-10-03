@@ -66,7 +66,9 @@ const app = createApp({
 });
 
 // idleTimeout 0: streamed responses can sit quiet for longer than Bun's 10s default.
-Bun.serve({ port, fetch: app.fetch, idleTimeout: 0 });
+// Localhost only by default: the dashboard and request log need no API key.
+const hostname = process.env.HOST ?? "127.0.0.1";
+Bun.serve({ port, hostname, fetch: app.fetch, idleTimeout: 0 });
 console.log(
 	`jev-gateway listening on http://localhost:${port} → ${upstreamBaseURL}`,
 );

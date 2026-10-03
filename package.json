@@ -9,7 +9,8 @@
 		"typecheck": "tsc --noEmit",
 		"lint": "biome check .",
 		"verify-jev": "bun run scripts/verify-jev.ts",
-		"seed-demo": "bun run scripts/seed-demo.ts"
+		"seed-demo": "bun run scripts/seed-demo.ts",
+		"dashboard-preview": "bun run scripts/dashboard-preview.ts"
 	},
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.131.0",

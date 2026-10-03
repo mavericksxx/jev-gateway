@@ -1,0 +1,1276 @@
+[
+	{
+		"id": "d798696e-46a4-4008-8a59-4fbaa58e2f6f",
+		"startedAt": 1779999712795,
+		"latencyMs": 4337,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-opus-5-5",
+		"usage": {
+			"input_tokens": 8571,
+			"output_tokens": 1702,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "opus-low",
+			"reason": "fallback",
+			"confidence": null,
+			"probabilities": null,
+			"jevLatencyMs": null,
+			"jevCostUsd": null,
+			"error": "Jev timed out after 1500ms"
+		},
+		"costUsd": 0.085405,
+		"baselineCostUsd": 0.085405
+	},
+	{
+		"id": "ed8c635f-b079-403f-9dd3-f7f4e88aac65",
+		"startedAt": 1779999576851,
+		"latencyMs": 4349,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 1774,
+			"output_tokens": 2275,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-high",
+			"reason": "jev",
+			"confidence": 0.6478,
+			"probabilities": {
+				"haiku": 0.0544,
+				"sonnet-low": 0.1578,
+				"sonnet-high": 0.6478,
+				"opus-low": 0.0082,
+				"opus-medium": 0.0438,
+				"opus-high": 0.0397,
+				"fable-high": 0.0483
+			},
+			"jevLatencyMs": 395,
+			"jevCostUsd": 0.0000744,
+			"error": null
+		},
+		"costUsd": 0.039447,
+		"baselineCostUsd": 0.065745
+	},
+	{
+		"id": "c8a32ca1-6a3c-433b-b273-a1d781cc6da8",
+		"startedAt": 1779999454082,
+		"latencyMs": 6790,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 7027,
+			"output_tokens": 1771,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "jev",
+			"confidence": 0.6317,
+			"probabilities": {
+				"haiku": 0.0896,
+				"sonnet-low": 0.6317,
+				"sonnet-high": 0.1143,
+				"opus-low": 0.0395,
+				"opus-medium": 0.0346,
+				"opus-high": 0.0442,
+				"fable-high": 0.0461
+			},
+			"jevLatencyMs": 374,
+			"jevCostUsd": 0.0000882,
+			"error": null
+		},
+		"costUsd": 0.047646,
+		"baselineCostUsd": 0.07941
+	},
+	{
+		"id": "d6211341-a8a3-4dc0-9b2b-27c91223b592",
+		"startedAt": 1779999308161,
+		"latencyMs": 3237,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 502,
+		"error": "Upstream overloaded_error: Overloaded",
+		"usage": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-haiku-4-5",
+		"route": {
+			"tier": "haiku",
+			"reason": "jev",
+			"confidence": 0.7095,
+			"probabilities": {
+				"haiku": 0.7095,
+				"sonnet-low": 0.0484,
+				"sonnet-high": 0.0454,
+				"opus-low": 0.0483,
+				"opus-medium": 0.0657,
+				"opus-high": 0.0411,
+				"fable-high": 0.0416
+			},
+			"jevLatencyMs": 498,
+			"jevCostUsd": 0.0000873,
+			"error": null
+		},
+		"costUsd": null,
+		"baselineCostUsd": null
+	},
+	{
+		"id": "ab2668e5-10b8-49cf-8ab0-534ebddd63f8",
+		"startedAt": 1779999179277,
+		"latencyMs": 8264,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "claude-sonnet-5-5",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 1995,
+			"output_tokens": 1463,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"costUsd": 0.02793,
+		"baselineCostUsd": 0.02793
+	},
+	{
+		"id": "83858931-86c8-43c0-8eb2-dc4d1f6e70b4",
+		"startedAt": 1779999019256,
+		"latencyMs": 8339,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 6352,
+			"output_tokens": 1967,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "jev",
+			"confidence": 0.7293,
+			"probabilities": {
+				"haiku": 0.1017,
+				"sonnet-low": 0.7293,
+				"sonnet-high": 0.0495,
+				"opus-low": 0.0701,
+				"opus-medium": 0.0003,
+				"opus-high": 0.0473,
+				"fable-high": 0.0018
+			},
+			"jevLatencyMs": 266,
+			"jevCostUsd": 0.0000798,
+			"error": null
+		},
+		"costUsd": 0.048561,
+		"baselineCostUsd": 0.080935
+	},
+	{
+		"id": "76e9a281-ce53-4d70-a8ed-e932eb3f45bc",
+		"startedAt": 1779998893608,
+		"latencyMs": 1268,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 787,
+			"output_tokens": 1612,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "sticky",
+			"confidence": 0.5215,
+			"probabilities": {
+				"haiku": 0.1464,
+				"sonnet-low": 0.5215,
+				"sonnet-high": 0.1786,
+				"opus-low": 0.0777,
+				"opus-medium": 0.007,
+				"opus-high": 0.0667,
+				"fable-high": 0.0021
+			},
+			"jevLatencyMs": 253,
+			"jevCostUsd": 0.0000921,
+			"error": null
+		},
+		"costUsd": 0.026541,
+		"baselineCostUsd": 0.044235
+	},
+	{
+		"id": "2791ccf5-9b98-43d5-a58b-a0da29132295",
+		"startedAt": 1779998762807,
+		"latencyMs": 6217,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-haiku-4-5",
+		"usage": {
+			"input_tokens": 1188,
+			"output_tokens": 1580,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "haiku",
+			"reason": "jev",
+			"confidence": 0.742,
+			"probabilities": {
+				"haiku": 0.742,
+				"sonnet-low": 0.0029,
+				"sonnet-high": 0.0674,
+				"opus-low": 0.062,
+				"opus-medium": 0.0366,
+				"opus-high": 0.0367,
+				"fable-high": 0.0524
+			},
+			"jevLatencyMs": 343,
+			"jevCostUsd": 0.0000831,
+			"error": null
+		},
+		"costUsd": 0.009088,
+		"baselineCostUsd": 0.04544
+	},
+	{
+		"id": "ed948e7f-1ac9-47d8-95cb-cf3b829958bf",
+		"startedAt": 1779998603575,
+		"latencyMs": 7049,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 696,
+			"output_tokens": 2239,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "jev",
+			"confidence": 0.548,
+			"probabilities": {
+				"haiku": 0.1975,
+				"sonnet-low": 0.548,
+				"sonnet-high": 0.08,
+				"opus-low": 0.0547,
+				"opus-medium": 0.0565,
+				"opus-high": 0.031,
+				"fable-high": 0.0323
+			},
+			"jevLatencyMs": 590,
+			"jevCostUsd": 0.0001173,
+			"error": null
+		},
+		"costUsd": 0.035673,
+		"baselineCostUsd": 0.059455
+	},
+	{
+		"id": "07548e7d-8819-4bca-86da-fba4a9eaf5a5",
+		"startedAt": 1779998464920,
+		"latencyMs": 2834,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 7970,
+			"output_tokens": 1803,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "jev",
+			"confidence": 0.516,
+			"probabilities": {
+				"haiku": 0.1966,
+				"sonnet-low": 0.516,
+				"sonnet-high": 0.0932,
+				"opus-low": 0.0583,
+				"opus-medium": 0.0029,
+				"opus-high": 0.0704,
+				"fable-high": 0.0626
+			},
+			"jevLatencyMs": 702,
+			"jevCostUsd": 0.0000852,
+			"error": null
+		},
+		"costUsd": 0.050955,
+		"baselineCostUsd": 0.084925
+	},
+	{
+		"id": "e113a9a8-7f59-4c29-aef7-65097c42e245",
+		"startedAt": 1779998334180,
+		"latencyMs": 7588,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 6945,
+			"output_tokens": 1376,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-high",
+			"reason": "low-confidence",
+			"confidence": 0.5578,
+			"probabilities": {
+				"haiku": 0.0099,
+				"sonnet-low": 0.2866,
+				"sonnet-high": 0.5578,
+				"opus-low": 0.0791,
+				"opus-medium": 0.0392,
+				"opus-high": 0.0126,
+				"fable-high": 0.0148
+			},
+			"jevLatencyMs": 419,
+			"jevCostUsd": 0.0000549,
+			"error": null
+		},
+		"costUsd": 0.041475,
+		"baselineCostUsd": 0.069125
+	},
+	{
+		"id": "50973802-6d43-4e2d-bbfa-0be42ef73661",
+		"startedAt": 1779998170178,
+		"latencyMs": 6713,
+		"endpoint": "messages",
+		"stream": false,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 6303,
+			"output_tokens": 2045,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-high",
+			"reason": "jev",
+			"confidence": 0.5169,
+			"probabilities": {
+				"haiku": 0.0426,
+				"sonnet-low": 0.2384,
+				"sonnet-high": 0.5169,
+				"opus-low": 0.0968,
+				"opus-medium": 0.0305,
+				"opus-high": 0.0482,
+				"fable-high": 0.0266
+			},
+			"jevLatencyMs": 320,
+			"jevCostUsd": 0.0000897,
+			"error": null
+		},
+		"costUsd": 0.049584,
+		"baselineCostUsd": 0.08264
+	},
+	{
+		"id": "3e855be0-7893-4a48-aa93-44e2dba1853b",
+		"startedAt": 1779998049554,
+		"latencyMs": 6124,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-haiku-4-5",
+		"usage": {
+			"input_tokens": 5407,
+			"output_tokens": 1835,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "haiku",
+			"reason": "jev",
+			"confidence": 0.6402,
+			"probabilities": {
+				"haiku": 0.6402,
+				"sonnet-low": 0.2323,
+				"sonnet-high": 0.0675,
+				"opus-low": 0.0046,
+				"opus-medium": 0.0079,
+				"opus-high": 0.0169,
+				"fable-high": 0.0306
+			},
+			"jevLatencyMs": 215,
+			"jevCostUsd": 0.0000567,
+			"error": null
+		},
+		"costUsd": 0.014582,
+		"baselineCostUsd": 0.07291
+	},
+	{
+		"id": "30c2219e-6f6e-40ad-ba33-93e84b7329d4",
+		"startedAt": 1779997918793,
+		"latencyMs": 4357,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 502,
+		"error": "Upstream overloaded_error: Overloaded",
+		"usage": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"route": {
+			"tier": "sonnet-high",
+			"reason": "jev",
+			"confidence": 0.5267,
+			"probabilities": {
+				"haiku": 0.0561,
+				"sonnet-low": 0.023,
+				"sonnet-high": 0.5267,
+				"opus-low": 0.2094,
+				"opus-medium": 0.0237,
+				"opus-high": 0.0766,
+				"fable-high": 0.0845
+			},
+			"jevLatencyMs": 731,
+			"jevCostUsd": 0.0000582,
+			"error": null
+		},
+		"costUsd": null,
+		"baselineCostUsd": null
+	},
+	{
+		"id": "2ccf31b9-b9a5-4ed2-b4cc-563767fd6555",
+		"startedAt": 1779997761317,
+		"latencyMs": 8531,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 4643,
+			"output_tokens": 1097,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-high",
+			"reason": "jev",
+			"confidence": 0.6149,
+			"probabilities": {
+				"haiku": 0.0336,
+				"sonnet-low": 0.1262,
+				"sonnet-high": 0.6149,
+				"opus-low": 0.1334,
+				"opus-medium": 0.0332,
+				"opus-high": 0.0396,
+				"fable-high": 0.0191
+			},
+			"jevLatencyMs": 355,
+			"jevCostUsd": 0.0001053,
+			"error": null
+		},
+		"costUsd": 0.030384,
+		"baselineCostUsd": 0.05064
+	},
+	{
+		"id": "c3e5bbd0-48a3-4056-a96c-7cddc30a5946",
+		"startedAt": 1779997609046,
+		"latencyMs": 6798,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 5719,
+			"output_tokens": 695,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-high",
+			"reason": "jev",
+			"confidence": 0.7763,
+			"probabilities": {
+				"haiku": 0.0376,
+				"sonnet-low": 0.041,
+				"sonnet-high": 0.7763,
+				"opus-low": 0.0114,
+				"opus-medium": 0.0609,
+				"opus-high": 0.0133,
+				"fable-high": 0.0595
+			},
+			"jevLatencyMs": 396,
+			"jevCostUsd": 0.0000828,
+			"error": null
+		},
+		"costUsd": 0.027582,
+		"baselineCostUsd": 0.04597
+	},
+	{
+		"id": "f8008122-56c6-46ed-89d8-e5e9d4b02b58",
+		"startedAt": 1779997505500,
+		"latencyMs": 6137,
+		"endpoint": "messages",
+		"stream": false,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 211,
+			"output_tokens": 2278,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "jev",
+			"confidence": 0.8376,
+			"probabilities": {
+				"haiku": 0.0461,
+				"sonnet-low": 0.8376,
+				"sonnet-high": 0.0135,
+				"opus-low": 0.0202,
+				"opus-medium": 0.0186,
+				"opus-high": 0.0586,
+				"fable-high": 0.0054
+			},
+			"jevLatencyMs": 556,
+			"jevCostUsd": 0.0000945,
+			"error": null
+		},
+		"costUsd": 0.034803,
+		"baselineCostUsd": 0.058005
+	},
+	{
+		"id": "3c7368a6-6d13-4400-933c-147142678ee5",
+		"startedAt": 1779997363812,
+		"latencyMs": 2559,
+		"endpoint": "messages",
+		"stream": false,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-opus-5-5",
+		"usage": {
+			"input_tokens": 4426,
+			"output_tokens": 409,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "opus-low",
+			"reason": "low-confidence",
+			"confidence": 0.673,
+			"probabilities": {
+				"haiku": 0.0582,
+				"sonnet-low": 0.0097,
+				"sonnet-high": 0.1594,
+				"opus-low": 0.673,
+				"opus-medium": 0.0162,
+				"opus-high": 0.0408,
+				"fable-high": 0.0427
+			},
+			"jevLatencyMs": 357,
+			"jevCostUsd": 0.0000657,
+			"error": null
+		},
+		"costUsd": 0.032355,
+		"baselineCostUsd": 0.032355
+	},
+	{
+		"id": "3a9ed850-6c97-4b62-b9b6-f28baf435780",
+		"startedAt": 1779997265000,
+		"latencyMs": 140,
+		"endpoint": "count_tokens",
+		"requestedModel": "claude-opus-5-5",
+		"upstreamModel": "claude-opus-5-5",
+		"stream": false,
+		"status": 200,
+		"usage": null,
+		"error": null,
+		"costUsd": null,
+		"baselineCostUsd": null
+	},
+	{
+		"id": "c5f72692-30ae-46dc-b5b7-b4239e648a01",
+		"startedAt": 1779997192617,
+		"latencyMs": 7354,
+		"endpoint": "messages",
+		"stream": false,
+		"status": 200,
+		"error": null,
+		"requestedModel": "claude-sonnet-5-5",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 1785,
+			"output_tokens": 604,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"costUsd": 0.014415,
+		"baselineCostUsd": 0.014415
+	},
+	{
+		"id": "adbbd682-59de-4f23-a698-3331336d35ee",
+		"startedAt": 1779997061602,
+		"latencyMs": 5202,
+		"endpoint": "messages",
+		"stream": false,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 7142,
+			"output_tokens": 64,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-high",
+			"reason": "sticky",
+			"confidence": 0.573,
+			"probabilities": {
+				"haiku": 0.0059,
+				"sonnet-low": 0.1968,
+				"sonnet-high": 0.573,
+				"opus-low": 0.1134,
+				"opus-medium": 0.0428,
+				"opus-high": 0.0642,
+				"fable-high": 0.0039
+			},
+			"jevLatencyMs": 587,
+			"jevCostUsd": 0.0000966,
+			"error": null
+		},
+		"costUsd": 0.022386,
+		"baselineCostUsd": 0.03731
+	},
+	{
+		"id": "c65c0e33-c40e-473b-bbe3-f3273681986f",
+		"startedAt": 1779996935021,
+		"latencyMs": 2197,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "claude-sonnet-5-5",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 4536,
+			"output_tokens": 226,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"costUsd": 0.016998,
+		"baselineCostUsd": 0.016998
+	},
+	{
+		"id": "74cd7a12-13d3-4edd-81e3-7de145e9c0a4",
+		"startedAt": 1779996777168,
+		"latencyMs": 5734,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-haiku-4-5",
+		"usage": {
+			"input_tokens": 6771,
+			"output_tokens": 1670,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "haiku",
+			"reason": "sticky",
+			"confidence": 0.6556,
+			"probabilities": {
+				"haiku": 0.6556,
+				"sonnet-low": 0.035,
+				"sonnet-high": 0.0817,
+				"opus-low": 0.0962,
+				"opus-medium": 0.1024,
+				"opus-high": 0.0151,
+				"fable-high": 0.014
+			},
+			"jevLatencyMs": 713,
+			"jevCostUsd": 0.0001017,
+			"error": null
+		},
+		"costUsd": 0.015121,
+		"baselineCostUsd": 0.075605
+	},
+	{
+		"id": "72a01cc7-d479-4b6f-820a-df0bbd3d8b07",
+		"startedAt": 1779996634047,
+		"latencyMs": 8232,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-haiku-4-5",
+		"usage": {
+			"input_tokens": 8272,
+			"output_tokens": 2471,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "haiku",
+			"reason": "jev",
+			"confidence": 0.5446,
+			"probabilities": {
+				"haiku": 0.5446,
+				"sonnet-low": 0.2125,
+				"sonnet-high": 0.0664,
+				"opus-low": 0.0597,
+				"opus-medium": 0.0023,
+				"opus-high": 0.0658,
+				"fable-high": 0.0487
+			},
+			"jevLatencyMs": 455,
+			"jevCostUsd": 0.0000645,
+			"error": null
+		},
+		"costUsd": 0.020627,
+		"baselineCostUsd": 0.103135
+	},
+	{
+		"id": "4c64dcf1-e912-4af1-b2d8-1c8c7f5b1ac2",
+		"startedAt": 1779996494059,
+		"latencyMs": 6149,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 1746,
+			"output_tokens": 1778,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "jev",
+			"confidence": 0.7045,
+			"probabilities": {
+				"haiku": 0.136,
+				"sonnet-low": 0.7045,
+				"sonnet-high": 0.0619,
+				"opus-low": 0.025,
+				"opus-medium": 0.0024,
+				"opus-high": 0.0597,
+				"fable-high": 0.0105
+			},
+			"jevLatencyMs": 771,
+			"jevCostUsd": 0.0000573,
+			"error": null
+		},
+		"costUsd": 0.031908,
+		"baselineCostUsd": 0.05318
+	},
+	{
+		"id": "34e80b88-624e-4268-baeb-dd61c2096f9f",
+		"startedAt": 1779996357949,
+		"latencyMs": 7658,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 1403,
+			"output_tokens": 427,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "sticky",
+			"confidence": 0.8151,
+			"probabilities": {
+				"haiku": 0.0283,
+				"sonnet-low": 0.8151,
+				"sonnet-high": 0.0356,
+				"opus-low": 0.0279,
+				"opus-medium": 0.0318,
+				"opus-high": 0.0519,
+				"fable-high": 0.0094
+			},
+			"jevLatencyMs": 440,
+			"jevCostUsd": 0.0001026,
+			"error": null
+		},
+		"costUsd": 0.010614,
+		"baselineCostUsd": 0.01769
+	},
+	{
+		"id": "c091d705-9824-4530-a504-b7c5f5c550a9",
+		"startedAt": 1779996215455,
+		"latencyMs": 8692,
+		"endpoint": "messages",
+		"stream": false,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-opus-5-5",
+		"usage": {
+			"input_tokens": 7215,
+			"output_tokens": 2126,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "opus-high",
+			"reason": "jev",
+			"confidence": 0.4933,
+			"probabilities": {
+				"haiku": 0.0458,
+				"sonnet-low": 0.0057,
+				"sonnet-high": 0.0573,
+				"opus-low": 0.0373,
+				"opus-medium": 0.1881,
+				"opus-high": 0.4933,
+				"fable-high": 0.1725
+			},
+			"jevLatencyMs": 328,
+			"jevCostUsd": 0.0001056,
+			"error": null
+		},
+		"costUsd": 0.089225,
+		"baselineCostUsd": 0.089225
+	},
+	{
+		"id": "8a210c90-ad33-43bb-ae13-4302767f5217",
+		"startedAt": 1779996086097,
+		"latencyMs": 6502,
+		"endpoint": "messages",
+		"stream": false,
+		"status": 200,
+		"error": null,
+		"requestedModel": "claude-opus-5-5",
+		"upstreamModel": "claude-opus-5-5",
+		"usage": {
+			"input_tokens": 4721,
+			"output_tokens": 259,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"costUsd": 0.03008,
+		"baselineCostUsd": 0.03008
+	},
+	{
+		"id": "4bdec639-b49f-4de2-8414-c0d5f01d0b0f",
+		"startedAt": 1779995970591,
+		"latencyMs": 905,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 1068,
+			"output_tokens": 942,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-high",
+			"reason": "sticky",
+			"confidence": 0.4702,
+			"probabilities": {
+				"haiku": 0.0256,
+				"sonnet-low": 0.2697,
+				"sonnet-high": 0.4702,
+				"opus-low": 0.1,
+				"opus-medium": 0.0698,
+				"opus-high": 0.058,
+				"fable-high": 0.0067
+			},
+			"jevLatencyMs": 338,
+			"jevCostUsd": 0.0001155,
+			"error": null
+		},
+		"costUsd": 0.017334,
+		"baselineCostUsd": 0.02889
+	},
+	{
+		"id": "80819a32-cfa6-4648-8b98-4e43c08ab221",
+		"startedAt": 1779995820997,
+		"latencyMs": 3133,
+		"endpoint": "messages",
+		"stream": false,
+		"status": 200,
+		"error": null,
+		"requestedModel": "claude-sonnet-5-5",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 3868,
+			"output_tokens": 410,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"costUsd": 0.017754,
+		"baselineCostUsd": 0.017754
+	},
+	{
+		"id": "47d7e2c9-5518-44ae-a72f-28f170283291",
+		"startedAt": 1779995676810,
+		"latencyMs": 8282,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 3855,
+			"output_tokens": 1382,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "low-confidence",
+			"confidence": 0.6371,
+			"probabilities": {
+				"haiku": 0.1643,
+				"sonnet-low": 0.6371,
+				"sonnet-high": 0.1172,
+				"opus-low": 0.0035,
+				"opus-medium": 0.0265,
+				"opus-high": 0.0307,
+				"fable-high": 0.0207
+			},
+			"jevLatencyMs": 254,
+			"jevCostUsd": 0.0000774,
+			"error": null
+		},
+		"costUsd": 0.032295,
+		"baselineCostUsd": 0.053825
+	},
+	{
+		"id": "34d8ede5-ab7f-4f1c-8fc4-eb6ef0c0df61",
+		"startedAt": 1779995547720,
+		"latencyMs": 4510,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-haiku-4-5",
+		"usage": {
+			"input_tokens": 7475,
+			"output_tokens": 1916,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "haiku",
+			"reason": "fallback",
+			"confidence": null,
+			"probabilities": null,
+			"jevLatencyMs": null,
+			"jevCostUsd": null,
+			"error": "Jev timed out after 1500ms"
+		},
+		"costUsd": 0.017055,
+		"baselineCostUsd": 0.085275
+	},
+	{
+		"id": "a45a83fc-7f37-40cd-b79c-3bee76fdada2",
+		"startedAt": 1779995405176,
+		"latencyMs": 3931,
+		"endpoint": "messages",
+		"stream": false,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-haiku-4-5",
+		"usage": {
+			"input_tokens": 2122,
+			"output_tokens": 981,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "haiku",
+			"reason": "jev",
+			"confidence": 0.5984,
+			"probabilities": {
+				"haiku": 0.5984,
+				"sonnet-low": 0.1966,
+				"sonnet-high": 0.0657,
+				"opus-low": 0.0431,
+				"opus-medium": 0.0446,
+				"opus-high": 0.0515,
+				"fable-high": 0.0001
+			},
+			"jevLatencyMs": 472,
+			"jevCostUsd": 0.0000849,
+			"error": null
+		},
+		"costUsd": 0.007027,
+		"baselineCostUsd": 0.035135
+	},
+	{
+		"id": "fd4b65c9-6964-41d4-87c7-36a6a2ccd06d",
+		"startedAt": 1779995262669,
+		"latencyMs": 8181,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "claude-sonnet-5-5",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 512,
+			"output_tokens": 749,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"costUsd": 0.012771,
+		"baselineCostUsd": 0.012771
+	},
+	{
+		"id": "5affc494-eed9-4bb7-8a42-2096fb9fecc7",
+		"startedAt": 1779995135505,
+		"latencyMs": 3255,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-opus-5-5",
+		"usage": {
+			"input_tokens": 8967,
+			"output_tokens": 697,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "opus-medium",
+			"reason": "jev",
+			"confidence": 0.7524,
+			"probabilities": {
+				"haiku": 0.0369,
+				"sonnet-low": 0.0085,
+				"sonnet-high": 0.0099,
+				"opus-low": 0.1198,
+				"opus-medium": 0.7524,
+				"opus-high": 0.0093,
+				"fable-high": 0.0632
+			},
+			"jevLatencyMs": 504,
+			"jevCostUsd": 0.0001149,
+			"error": null
+		},
+		"costUsd": 0.06226,
+		"baselineCostUsd": 0.06226
+	},
+	{
+		"id": "5dba76e1-3332-4b5a-9ba1-b0392faa3ed8",
+		"startedAt": 1779994985466,
+		"latencyMs": 839,
+		"endpoint": "messages",
+		"stream": false,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 8987,
+			"output_tokens": 217,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "jev",
+			"confidence": 0.5065,
+			"probabilities": {
+				"haiku": 0.1355,
+				"sonnet-low": 0.5065,
+				"sonnet-high": 0.1745,
+				"opus-low": 0.0306,
+				"opus-medium": 0.0436,
+				"opus-high": 0.041,
+				"fable-high": 0.0683
+			},
+			"jevLatencyMs": 253,
+			"jevCostUsd": 0.0001233,
+			"error": null
+		},
+		"costUsd": 0.030216,
+		"baselineCostUsd": 0.05036
+	},
+	{
+		"id": "984d8a58-a5f4-4909-924e-5a7647a3ac38",
+		"startedAt": 1779994828874,
+		"latencyMs": 5788,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "claude-opus-5-5",
+		"upstreamModel": "claude-opus-5-5",
+		"usage": {
+			"input_tokens": 2149,
+			"output_tokens": 113,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"costUsd": 0.01357,
+		"baselineCostUsd": 0.01357
+	},
+	{
+		"id": "47a71ce3-c37e-4f69-bdb6-e3287b2b0352",
+		"startedAt": 1779994717407,
+		"latencyMs": 2498,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 529,
+		"error": "Upstream overloaded_error: Overloaded",
+		"usage": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-haiku-4-5",
+		"route": {
+			"tier": "haiku",
+			"reason": "fallback",
+			"confidence": null,
+			"probabilities": null,
+			"jevLatencyMs": null,
+			"jevCostUsd": null,
+			"error": "Jev timed out after 1500ms"
+		},
+		"costUsd": null,
+		"baselineCostUsd": null
+	},
+	{
+		"id": "5860c0f5-0fb6-4488-b430-8a0021f83dd2",
+		"startedAt": 1779994556084,
+		"latencyMs": 2741,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 502,
+		"error": "Upstream overloaded_error: Overloaded",
+		"usage": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-sonnet-5-5",
+		"route": {
+			"tier": "sonnet-low",
+			"reason": "jev",
+			"confidence": 0.5,
+			"probabilities": {
+				"haiku": 0.0919,
+				"sonnet-low": 0.5,
+				"sonnet-high": 0.2408,
+				"opus-low": 0.0265,
+				"opus-medium": 0.0067,
+				"opus-high": 0.0546,
+				"fable-high": 0.0795
+			},
+			"jevLatencyMs": 475,
+			"jevCostUsd": 0.0000933,
+			"error": null
+		},
+		"costUsd": null,
+		"baselineCostUsd": null
+	},
+	{
+		"id": "b549277d-cef6-430e-a356-ef7522bb1b70",
+		"startedAt": 1779994409558,
+		"latencyMs": 4127,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "claude-sonnet-5-5",
+		"upstreamModel": "claude-sonnet-5-5",
+		"usage": {
+			"input_tokens": 5410,
+			"output_tokens": 1083,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"costUsd": 0.032475,
+		"baselineCostUsd": 0.032475
+	},
+	{
+		"id": "7ec8030f-e0ad-432b-8a0d-15cb40290527",
+		"startedAt": 1779994269799,
+		"latencyMs": 5370,
+		"endpoint": "messages",
+		"stream": true,
+		"status": 200,
+		"error": null,
+		"requestedModel": "auto",
+		"upstreamModel": "claude-opus-5-5",
+		"usage": {
+			"input_tokens": 7409,
+			"output_tokens": 666,
+			"cache_creation_input_tokens": 0,
+			"cache_read_input_tokens": 0
+		},
+		"route": {
+			"tier": "opus-low",
+			"reason": "sticky",
+			"confidence": 0.7211,
+			"probabilities": {
+				"haiku": 0.0182,
+				"sonnet-low": 0.0789,
+				"sonnet-high": 0.0677,
+				"opus-low": 0.7211,
+				"opus-medium": 0.0238,
+				"opus-high": 0.0679,
+				"fable-high": 0.0224
+			},
+			"jevLatencyMs": 587,
+			"jevCostUsd": 0.0000705,
+			"error": null
+		},
+		"costUsd": 0.053695,
+		"baselineCostUsd": 0.053695
+	}
+]
