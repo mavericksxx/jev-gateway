@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { TypeSafeClient } from "@typesafe-ai/sdk";
 import { type Context, Hono } from "hono";
+import type { RequestsResponse, StatsResponse } from "./dashboard/types";
 import type { Router } from "./routing/router";
 import { TIERS } from "./routing/tiers";
 import type { ClaudeUsage, RequestRecord, RouteDecision } from "./types";
@@ -15,6 +16,13 @@ export interface AppOptions {
 	router?: Router;
 	/** Builds a Jev client for a caller-supplied `x-jev-key`. Required for BYO keys; tests inject a mock. */
 	makeJevClient?: (apiKey: string) => TypeSafeClient;
+	/** Serves the savings dashboard and its JSON API (no API key needed). */
+	dashboard?: {
+		stats: () => StatsResponse;
+		requests: (limit: number) => RequestsResponse;
+		/** Path of the dashboard HTML file to serve at GET /dashboard. */
+		htmlPath: string;
+	};
 }
 
 type ErrorBody = { type: "error"; error: { type: string; message: string } };
@@ -27,6 +35,23 @@ const errorBody = (type: string, message: string): ErrorBody => ({
 export function createApp(opts: AppOptions): Hono {
 	const app = new Hono();
 	app.get("/health", (c) => c.text("ok"));
+	const dash = opts.dashboard;
+	if (dash) {
+		app.get("/", (c) => c.redirect("/dashboard"));
+		app.get("/dashboard", async (c) => {
+			const file = Bun.file(dash.htmlPath);
+			if (!(await file.exists())) return c.text("dashboard not found", 404);
+			return c.body(await file.text(), 200, {
+				"content-type": "text/html; charset=utf-8",
+			});
+		});
+		app.get("/api/stats", (c) => c.json(dash.stats()));
+		app.get("/api/requests", (c) => {
+			const n = Number.parseInt(c.req.query("limit") ?? "", 10);
+			const limit = Number.isNaN(n) ? 100 : Math.min(1000, Math.max(1, n));
+			return c.json(dash.requests(limit));
+		});
+	}
 
 	const handle = async (c: Context, endpoint: RequestRecord["endpoint"]) => {
 		const startedAt = Date.now();

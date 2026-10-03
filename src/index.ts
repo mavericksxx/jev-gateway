@@ -1,3 +1,4 @@
+import { computeStats, withBaseline } from "./dashboard/stats";
 import { createJevClient } from "./jev/client";
 import { costUsd } from "./pricing";
 import { createRouter } from "./routing/router";
@@ -17,6 +18,12 @@ const defaultTier = process.env.ROUTER_DEFAULT_TIER ?? "opus-medium";
 if (!ALL_TIERS.includes(defaultTier as Tier)) {
 	throw new Error(
 		`ROUTER_DEFAULT_TIER "${defaultTier}" is not one of ${ALL_TIERS.join(", ")}`,
+	);
+}
+const baselineTier = process.env.BASELINE_TIER ?? "opus-medium";
+if (!ALL_TIERS.includes(baselineTier as Tier)) {
+	throw new Error(
+		`BASELINE_TIER "${baselineTier}" is not one of ${ALL_TIERS.join(", ")}`,
 	);
 }
 let spent = store.jevSpentUsd();
@@ -42,6 +49,15 @@ const app = createApp({
 	router,
 	makeJevClient: (key) =>
 		createJevClient({ mode: "live", apiKey: key, timeoutMs }),
+	dashboard: {
+		stats: () =>
+			computeStats(store.recent(1_000_000), {
+				baselineTier: baselineTier as Tier,
+				jevBudgetUsd: budgetLimit,
+			}),
+		requests: (n) => withBaseline(store.recent(n), baselineTier as Tier),
+		htmlPath: new URL("./dashboard/index.html", import.meta.url).pathname,
+	},
 	onRecord: (record) =>
 		store.insert(
 			record,
@@ -57,3 +73,4 @@ console.log(
 console.log(
 	`jev mode=${jevMode} budget remaining=$${(budgetLimit - spent).toFixed(4)} default tier=${defaultTier}`,
 );
+console.log(`dashboard: http://localhost:${port}/dashboard`);

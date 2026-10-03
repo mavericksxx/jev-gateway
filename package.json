@@ -8,7 +8,8 @@
 		"test": "bun test",
 		"typecheck": "tsc --noEmit",
 		"lint": "biome check .",
-		"verify-jev": "bun run scripts/verify-jev.ts"
+		"verify-jev": "bun run scripts/verify-jev.ts",
+		"seed-demo": "bun run scripts/seed-demo.ts"
 	},
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.131.0",
