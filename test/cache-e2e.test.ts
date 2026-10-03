@@ -7,7 +7,7 @@ import { recordCostUsd } from "../src/pricing";
 import { createRouter } from "../src/routing/router";
 import { createApp } from "../src/server";
 import type { RequestRecord } from "../src/types";
-import { fakeEmbedder } from "./cache.test";
+import { fakeEmbedder } from "./fake-embedder";
 import { type FakeUpstream, startFakeUpstream } from "./fake-upstream";
 
 let upstream: FakeUpstream;
@@ -187,4 +187,26 @@ test("routed hit still records the route", async () => {
 	expect(second.rec.cache?.outcome).toBe("hit");
 	expect(second.rec.route).toBeDefined();
 	expect(recordCostUsd(second.rec)).toBe(0);
+});
+
+test("answers are never shared across API keys", async () => {
+	await ask("s-tenant");
+	expect(upstream.requests).toHaveLength(1);
+	const other = await new Anthropic({
+		apiKey: "k2",
+		baseURL: `http://localhost:${gateway.port}`,
+		maxRetries: 0,
+	}).messages
+		.create(
+			{
+				model: "claude-haiku-4-5",
+				max_tokens: 10,
+				system: "s-tenant",
+				messages: [{ role: "user", content: "what is the capital of france" }],
+			},
+			on,
+		)
+		.withResponse();
+	expect(other.response.headers.get("x-gateway-cache-result")).toBe("miss");
+	expect(upstream.requests).toHaveLength(2);
 });

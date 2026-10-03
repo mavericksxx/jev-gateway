@@ -164,13 +164,17 @@ export function createApp(opts: AppOptions): Hono {
 			const jev = getCaller();
 			return jev ? { jev } : undefined;
 		};
+		// Cached answers are scoped to the caller's credential so they never cross callers.
+		const tenant = new Bun.CryptoHasher("sha256")
+			.update(apiKey ?? authToken ?? "")
+			.digest("hex");
 		const cc$ = opts.cache;
 		const cacheHdr = c.req.header("x-gateway-cache");
 		const cacheP =
 			cc$ &&
 			endpoint === "messages" &&
 			(cacheHdr === "on" || (cacheHdr !== "off" && cc$.defaultOn))
-				? cc$.cache.lookup(body, jevOpts())
+				? cc$.cache.lookup(body, { ...jevOpts(), tenant })
 				: Promise.resolve(null);
 		const trimP =
 			doTrim && tt ? tt.trimmer.trim(body, jevOpts()) : Promise.resolve(null);
@@ -277,7 +281,7 @@ export function createApp(opts: AppOptions): Hono {
 		const storeAnswer = (msg: Anthropic.Beta.Messages.BetaMessage | null) => {
 			if (!record.cache || !opts.cache || !msg || !isStorable(msg)) return;
 			record.cache.stored = true;
-			void opts.cache.cache.store(body, msg, record.id);
+			void opts.cache.cache.store(body, msg, record.id, tenant);
 		};
 		const beta = c.req.header("anthropic-beta");
 		const paramsFor = (b: Record<string, unknown>, extra: string[]) => {

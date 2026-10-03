@@ -28,13 +28,15 @@ export interface SemanticCache {
 	/** null when the body isn't cacheable. Never throws (errors → miss with error). */
 	lookup(
 		body: Record<string, unknown>,
-		opts?: { jev?: TypeSafeClient },
+		/** tenant: identifies the caller (e.g. a hash of its API key) so answers are never shared across callers. */
+		opts?: { jev?: TypeSafeClient; tenant?: string },
 	): Promise<{ hit: Message | null; lookup: CacheLookup } | null>;
 	/** Embeds and stores a storable answer for a cacheable body. Never throws; resolves false if not stored. */
 	store(
 		body: Record<string, unknown>,
 		message: Message,
 		requestId: string,
+		tenant?: string,
 	): Promise<boolean>;
 }
 
@@ -68,11 +70,12 @@ export function isCacheable(body: Obj): boolean {
 	return body.temperature === undefined || body.temperature === 0;
 }
 
-/** sha256 hex of JSON.stringify([model, system ?? null, output_config ?? null, stop_sequences ?? null, thinking ?? null]). */
-export function cacheScope(body: Obj): string {
+/** sha256 hex of JSON.stringify([tenant, model, system ?? null, output_config ?? null, stop_sequences ?? null, thinking ?? null]). */
+export function cacheScope(body: Obj, tenant = ""): string {
 	return new Bun.CryptoHasher("sha256")
 		.update(
 			JSON.stringify([
+				tenant,
 				body.model,
 				body.system ?? null,
 				body.output_config ?? null,
@@ -124,7 +127,7 @@ export function createSemanticCache(opts: SemanticCacheOptions): SemanticCache {
 			try {
 				const vec = await opts.embedder.embed(question);
 				const scored = opts.store
-					.inScope(cacheScope(body), start, opts.ttlMs)
+					.inScope(cacheScope(body, ro?.tenant), start, opts.ttlMs)
 					.map((entry) => ({ entry, sim: dot(vec, entry.embedding) }));
 				if (scored.length > 0) {
 					lookup.bestSimilarity = Math.max(...scored.map((s) => s.sim));
@@ -196,13 +199,13 @@ export function createSemanticCache(opts: SemanticCacheOptions): SemanticCache {
 			lookup.lookupMs = Date.now() - start;
 			return { hit, lookup };
 		},
-		async store(body, message, requestId) {
+		async store(body, message, requestId, tenant) {
 			try {
 				const question = isCacheable(body) ? questionOf(body) : null;
 				if (question === null || !isStorable(message)) return false;
 				opts.store.add({
 					id: crypto.randomUUID(),
-					scope: cacheScope(body),
+					scope: cacheScope(body, tenant),
 					question,
 					embedding: await opts.embedder.embed(question),
 					message,
