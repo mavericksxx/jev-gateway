@@ -1,0 +1,73 @@
+{
+	"request": {
+		"state": {
+			"system_prompt_excerpt": "You are a helpful coding assistant.",
+			"last_user_turn": "Refactor this 400-line React component into smaller hooks and explain the tradeoffs.",
+			"turn_count": 1,
+			"tool_names": [],
+			"estimated_input_tokens": 5200
+		},
+		"questions": {
+			"tier": {
+				"type": "choice",
+				"instructions": "Which Claude tier should handle this request?",
+				"criteria": {
+					"haiku": "Simple lookups, short rewrites, casual chat.",
+					"sonnet": "Everyday coding and writing of moderate difficulty.",
+					"opus": "Hard multi-step reasoning, large refactors, subtle bugs."
+				}
+			},
+			"difficulty": {
+				"type": "score",
+				"instructions": "How difficult is this request?",
+				"criteria": ["trivial", "easy", "moderate", "hard"]
+			},
+			"needsCode": {
+				"type": "noul",
+				"instructions": "The answer will need to include code."
+			}
+		},
+		"model": "jev-latest"
+	},
+	"response": {
+		"model": "jev-1.13.0",
+		"answers": {
+			"tier": {
+				"type": "choice",
+				"choice": "opus",
+				"confidence": 0.88,
+				"probabilities": {
+					"opus": 0.92,
+					"sonnet": 0.08,
+					"haiku": 0
+				}
+			},
+			"difficulty": {
+				"type": "score",
+				"score": 2.68,
+				"confidence": 0.68,
+				"legend": {
+					"0": "trivial",
+					"1": "easy",
+					"2": "moderate",
+					"3": "hard"
+				},
+				"probabilities": {
+					"0": 0,
+					"1": 0,
+					"2": 0.31,
+					"3": 0.6900000000000001
+				}
+			},
+			"needsCode": {
+				"type": "noul",
+				"noul": 0.92
+			}
+		},
+		"usage": {
+			"input_tokens": 482,
+			"output_tokens": 71
+		}
+	},
+	"status": 200
+}

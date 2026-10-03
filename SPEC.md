@@ -28,7 +28,7 @@ Every layer is optional, switchable per request, and **fails open**: if Jev erro
 
 ## 2. Background facts the design depends on
 
-**Jev (TypeSafe)** — verify all of these in Phase 0; sources disagree on details.
+**Jev (TypeSafe)** — verified in Phase 0 against the live API (`fixtures/jev/verify.json`): model `jev-1.13.0`; each extra question adds ~70 input tokens (343 → 482 going from 1 to 3 questions), so question text is billed; output tokens are reported but free; latency 323–413 ms over 5 calls. The rest below comes from public write-ups.
 - Answers only typed questions about a text/JSON `state`: **choice** (≤255 options, returns probabilities + confidence), **score** (ordered levels), **noul** (probability a statement is true).
 - All questions in one request run in parallel and are independent of each other.
 - ~70–500 ms latency. $0.042 / 1M input tokens, output free (~$0.00002 for a 450-token request).
@@ -67,7 +67,7 @@ client ──► jev-gateway (:8787) ──► Anthropic API
 
 - **Runtime**: Bun + TypeScript, Hono for HTTP, `bun:sqlite` for storage.
 - **Upstream calls**: official `@anthropic-ai/sdk`, one client per request built from the caller's `x-api-key`; `anthropic-beta` headers forwarded as `betas`; streamed events re-emitted as SSE unchanged.
-- **Jev calls**: `@typesafe-ai/sdk`, behind a `JevClient` interface with three implementations: `native`, `openrouter`, `mock` (replays recorded fixtures; the default in dev and tests).
+- **Jev calls**: `@typesafe-ai/sdk`'s `TypeSafeClient`, created by `createJevClient({ mode })`. `mock` mode swaps in a local fetch that returns schema-valid answers (the default in dev and tests). OpenRouter can be added later via the SDK's `baseURL` if needed.
 - **Control headers** (request): `x-gateway-mode: off|route|full`, `x-jev-key: …` (BYO Jev key). Only requests with `model: "auto"` (or a configured alias) are rerouted; an explicit model is passed through untouched, though other layers can still apply.
 - **Response headers**: `x-gateway-model`, `x-gateway-decision-id`, `x-gateway-cache: hit|miss`.
 - **Safety**: Jev timeout (default 800 ms) → fail open. Jev spend tracked per call; over `JEV_BUDGET_USD` → all layers bypassed and the dashboard shows a warning.

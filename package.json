@@ -1,0 +1,20 @@
+{
+	"name": "jev-gateway",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"test": "bun test",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome check .",
+		"verify-jev": "bun run scripts/verify-jev.ts"
+	},
+	"dependencies": {
+		"@typesafe-ai/sdk": "^0.6.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.15",
+		"@types/bun": "^1.4.2",
+		"typescript": "^7.0.2"
+	}
+}
