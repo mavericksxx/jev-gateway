@@ -19,13 +19,15 @@ export interface StatsResponse {
 		 * counts; non-routed requests count at their actual cost (no savings claimed).
 		 * Trimmed requests add back toolTrim.estimatedTokensSaved as uncached input tokens,
 		 * priced at the baseline model (routed) or the upstream model (non-routed).
+		 * Cache hits cost 0; their baseline is the cached response's usage priced at the
+		 * baseline model when requestedModel is "auto", else at the cached response's model.
 		 */
 		baselineCostUsd: number;
 		/** baselineCostUsd - actualCostUsd */
 		savedUsd: number;
 		/** savedUsd / baselineCostUsd; null when baselineCostUsd is 0. */
 		savedPct: number | null;
-		/** Router + cascade-judge + tool-trim Jev costs. */
+		/** Router + cascade-judge + tool-trim + cache Jev costs. */
 		jevSpentUsd: number;
 		jevBudgetUsd: number;
 		/** savedUsd - jevSpentUsd */
@@ -35,7 +37,8 @@ export interface StatsResponse {
 	jevLatencyMs: { p50: number | null; p95: number | null };
 	/**
 	 * Routed requests only, by the tier that served the response (the cascade's first tier
-	 * when accepted, else route.tier). Always all 7 tiers in TIERS order, zeros included.
+	 * when accepted, else route.tier); cache hits are excluded. Always all 7 tiers in TIERS
+	 * order, zeros included.
 	 */
 	tierMix: Array<{
 		tier: Tier;
@@ -63,6 +66,17 @@ export interface StatsResponse {
 		estimatedTokensSaved: number;
 		/** Estimate, already inside totals.savedUsd: tokens saved priced as in baselineCostUsd. */
 		estimatedSavedUsd: number;
+		/** Already inside totals.jevSpentUsd. */
+		jevCostUsd: number;
+	};
+	/** Over messages requests that carry a cache record. */
+	cache: {
+		lookups: number;
+		hits: number;
+		/** hits / lookups; null when there were no lookups. */
+		hitRate: number | null;
+		/** Estimate, already inside totals.savedUsd: Σ baseline cost of hits. */
+		savedUsd: number;
 		/** Already inside totals.jevSpentUsd. */
 		jevCostUsd: number;
 	};

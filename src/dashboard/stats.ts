@@ -170,6 +170,8 @@ export function computeStats(
 		})),
 		cascade,
 		toolTrim,
+		// Placeholder until the cache stats land in Phase 6.
+		cache: { lookups: 0, hits: 0, hitRate: null, savedUsd: 0, jevCostUsd: 0 },
 		reasons,
 		bucketMs,
 		timeline,

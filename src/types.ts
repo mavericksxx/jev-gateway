@@ -34,6 +34,8 @@ export interface RequestRecord {
 	cascade?: CascadeAttempt;
 	/** Present only when tool trimming ran for this request. */
 	toolTrim?: ToolTrim;
+	/** Present only when the answer cache was consulted for this request. */
+	cache?: CacheLookup;
 }
 
 /** How the router picked a tier for one request. */
@@ -96,5 +98,30 @@ export interface ToolTrim {
 	/** Charged to the gateway's Jev budget; null when Jev wasn't called or a caller-supplied key was used. */
 	jevCostUsd: number | null;
 	/** Jev error, timeout or budget exhaustion; when set nothing was trimmed. */
+	error: string | null;
+}
+
+/**
+ * One answer-cache lookup. On a hit no upstream call is made: `RequestRecord.usage` and
+ * `upstreamModel` describe the cached response (what it originally took to produce), and
+ * the request's actual cost is 0.
+ */
+export interface CacheLookup {
+	outcome: "hit" | "miss";
+	/** Stored entries above the similarity threshold that Jev was asked about. */
+	candidates: number;
+	/** Cosine similarity of the closest stored question in scope; null when the scope was empty. */
+	bestSimilarity: number | null;
+	/** Jev's probability that the best candidate's answer fits; null when Jev wasn't asked. */
+	matchProbability: number | null;
+	/** On a hit, the id of the request whose answer was served. */
+	sourceRequestId: string | null;
+	jevLatencyMs: number | null;
+	/** Charged to the gateway's Jev budget; null when Jev wasn't called or a caller-supplied key was used. */
+	jevCostUsd: number | null;
+	/** Wall time of the whole lookup, including embedding. */
+	lookupMs: number;
+	/** On a miss: true when this request's answer was storable and handed to the cache. Always false on a hit. */
+	stored: boolean;
 	error: string | null;
 }
