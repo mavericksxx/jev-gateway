@@ -1,8 +1,16 @@
 import { expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ClaudeCall, ClaudeResult, RunClaude } from "../eval/lib/claude";
+import { JUDGE_SINGLE_SYSTEM, JUDGE_VERSION } from "../eval/lib/judge";
 import { type Deps, runAll } from "../eval/lib/runner";
 import { median, type Row, summarizeVariant } from "../eval/summarize";
 import type { RouteDecision } from "../src/types";
@@ -34,7 +42,9 @@ function setup(
 		calls.push(c);
 		const isJudge = c.model === "claude-fable-5-1";
 		const text = isJudge
-			? '{"verdict":"A","reason":"ok"}'
+			? c.system === JUDGE_SINGLE_SYSTEM
+				? '{"acceptable":true,"reason":"single"}'
+				: '{"verdict":"A","acceptable":{"A":true,"B":true},"reason":"ok"}'
 			: (answerFor?.(c) ?? `ans-${c.model}-${c.effort ?? "none"}`);
 		return {
 			text,
@@ -81,7 +91,10 @@ test("opus-medium route reuses baseline answer; ties without judge; rows complet
 	expect(opus.map((c) => c.effort).sort()).toEqual(["low", "medium"]);
 	const v2 = rows(s.outDir, "v2")[0] as AnyRow;
 	expect(v2.meta.reused).toBe(true);
-	expect(v2.grade).toEqual({ win: 0.5, both_bad: 0 });
+	expect(v2.meta.judge_version).toBe(JUDGE_VERSION);
+	// identical to baseline: no judge call, acceptability copied from the baseline answer
+	expect(v2.judge_usage).toBeNull();
+	expect(v2.grade).toEqual({ acceptable: 1, win: 0.5, both_bad: 0 });
 	for (const k of [
 		"prompt_id",
 		"prompt",
@@ -103,9 +116,108 @@ test("opus-medium route reuses baseline answer; ties without judge; rows complet
 	}
 	expect(existsSync(join(s.outDir, "v2", "traces", "81_rep0.json"))).toBe(true);
 	expect(rows(s.outDir, "baseline")[0]?.grade).toEqual({
+		acceptable: 1,
 		win: 0.5,
 		both_bad: 0,
 	});
+	expect(s.calls.filter((c) => c.system === JUDGE_SINGLE_SYSTEM)).toHaveLength(
+		0,
+	);
+});
+
+test("baseline acceptability is the mean across judged comparisons", async () => {
+	const s = setup("opus-low", 0.3);
+	const orig = s.deps.runClaude;
+	let n = 0;
+	s.deps.runClaude = async (c) => {
+		const r = await orig(c);
+		if (c.model !== "claude-fable-5-1") return r;
+		// alternate the baseline's verdict per judged comparison (v1, v2, v3 all differ from baseline)
+		const baseOk = n++ % 2 === 0;
+		const isA =
+			c.prompt.indexOf("ans-claude-opus-5-5-medium") <
+			c.prompt.indexOf("<answer_b>");
+		const acc = isA ? { A: baseOk, B: true } : { A: true, B: baseOk };
+		return {
+			...r,
+			text: JSON.stringify({ verdict: "tie", acceptable: acc, reason: "r" }),
+		};
+	};
+	await runAll(Q, s.deps, 1);
+	expect(n).toBe(3);
+	const b = rows(s.outDir, "baseline")[0] as AnyRow;
+	expect(b.grade.acceptable).toBeCloseTo(2 / 3);
+	expect(b.explanation).toContain("2/3");
+	for (const v of ["v1", "v2", "v3"]) {
+		expect(rows(s.outDir, v)[0]?.grade.acceptable).toBe(1);
+	}
+	expect(s.calls.filter((c) => c.system === JUDGE_SINGLE_SYSTEM)).toHaveLength(
+		0,
+	);
+});
+
+test("single-answer acceptability call only when nothing was judged", async () => {
+	// every setup produces the baseline text: no comparison is judged
+	const s = setup("opus-medium", 0.9, () => "same");
+	await runAll(Q, s.deps, 1);
+	const single = s.calls.filter((c) => c.system === JUDGE_SINGLE_SYSTEM);
+	expect(single).toHaveLength(1);
+	expect(single[0]?.prompt).toContain("same");
+	expect(s.calls.filter((c) => c.model === "claude-fable-5-1")).toHaveLength(1);
+	for (const v of ["baseline", "v1", "v2", "v3"]) {
+		const r = rows(s.outDir, v)[0] as AnyRow;
+		expect(r.grade).toEqual({ acceptable: 1, win: 0.5, both_bad: 0 });
+	}
+	expect(rows(s.outDir, "baseline")[0]?.judge_model).toBe("claude-fable-5-1");
+	expect(rows(s.outDir, "baseline")[0]?.explanation).toContain("single");
+});
+
+test("judge-version bump re-grades old rows without new answer calls or duplicates", async () => {
+	const s = setup("opus-low", 0.3);
+	await runAll(Q, s.deps, 1);
+	const answerCalls = () =>
+		s.calls.filter((c) => c.model !== "claude-fable-5-1").length;
+	const nAns = answerCalls();
+	const nCascade = s.cascades();
+	// simulate rows written by an older judge version
+	for (const v of ["baseline", "v1", "v2", "v3"]) {
+		const p = join(s.outDir, v, "results.jsonl");
+		const old = rows(s.outDir, v).map((r) => ({
+			...r,
+			grade: { win: 0, both_bad: 0 },
+			meta: { ...r.meta, judge_version: JUDGE_VERSION - 1 },
+		}));
+		writeFileSync(p, old.map((r) => `${JSON.stringify(r)}\n`).join(""));
+	}
+	// drop the cached judgments (not the cascade decision) so the re-grade actually calls the judge
+	for (const f of readdirSync(join(s.outDir, "_judgments"))) {
+		if (f.includes("__j")) rmSync(join(s.outDir, "_judgments", f));
+	}
+	const nJudge = s.calls.filter((c) => c.model === "claude-fable-5-1").length;
+	await runAll(Q, s.deps, 1);
+	expect(answerCalls()).toBe(nAns);
+	expect(s.cascades()).toBe(nCascade);
+	expect(s.calls.filter((c) => c.model === "claude-fable-5-1").length).toBe(
+		nJudge + 3,
+	);
+	for (const v of ["baseline", "v1", "v2", "v3"]) {
+		const rs = rows(s.outDir, v);
+		expect(rs).toHaveLength(1);
+		expect(rs[0]?.meta.judge_version).toBe(JUDGE_VERSION);
+		expect(rs[0]?.grade.acceptable).toBeDefined();
+	}
+});
+
+test("_state.json lists acceptable, then win, then both_bad", async () => {
+	const s = setup("opus-low", 0.9);
+	await runAll(Q, s.deps, 1);
+	const st = JSON.parse(readFileSync(join(s.outDir, "_state.json"), "utf8"));
+	expect(st.metrics.map((m: { id: string }) => m.id)).toEqual([
+		"acceptable",
+		"win",
+		"both_bad",
+	]);
+	for (const m of st.metrics) expect(m.label.length).toBeLessThanOrEqual(14);
 });
 
 test("v3 accepts Haiku answer: cost is Haiku only", async () => {
@@ -171,8 +283,9 @@ test("summarize math", () => {
 		cost: number,
 		lat: number,
 		extra = {},
+		acceptable = 1,
 	): Row => ({
-		grade: { win, both_bad: bb },
+		grade: { acceptable, win, both_bad: bb },
 		cost_usd: cost,
 		judge_cost_usd: 0.5,
 		latency_s: lat,
@@ -192,9 +305,19 @@ test("summarize math", () => {
 			route: { tier: "opus-low" },
 			cascade: { outcome: "routed-haiku" },
 		}),
-		mk(0.5, 1, 4, 10),
+		mk(0.5, 1, 4, 10, {}, 0),
 	]);
 	expect(s.graded).toBe(4);
+	expect(s.acceptable_rate).toBe(0.75);
+	expect(s.acceptable_count).toBe(3);
+	expect(s.cost_per_acceptable_usd).toBeCloseTo(10 / 3);
+	// sd = sqrt((3*0.0625 + 0.5625)/3) = 0.5
+	expect(s.acceptable_ci95[1] - s.acceptable_rate).toBeCloseTo(
+		(1.96 * 0.5) / 2,
+	);
+	expect(
+		summarizeVariant([mk(1, 0, 1, 1, {}, 0)]).cost_per_acceptable_usd,
+	).toBeNull();
 	expect(s.mean_win).toBeCloseTo(0.5);
 	expect([s.wins, s.ties, s.losses, s.both_bad]).toEqual([1, 1, 1, 1]);
 	expect(s.answer_cost_usd).toBe(10);

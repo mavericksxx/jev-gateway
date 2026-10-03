@@ -52,8 +52,8 @@ async function main(): Promise<void> {
 	if (flag("--judge-selftest")) {
 		const res = await judgeSelftest(runClaudeCli, timeoutMs);
 		for (const r of res)
-			console.log(r.name, r.goodWon ? "PASS" : "FAIL", r.reason);
-		process.exit(res.every((r) => r.goodWon) ? 0 : 1);
+			console.log(r.name, r.pass ? "PASS" : "FAIL", r.reason);
+		process.exit(res.every((r) => r.pass) ? 0 : 1);
 	}
 	if (!process.env.TYPESAFE_API_KEY)
 		throw new Error("TYPESAFE_API_KEY not set (.env)");
