@@ -16,7 +16,6 @@ import {
 	type Deps,
 	runAll,
 	seedFrom,
-	sha,
 	tiersFingerprint,
 } from "../eval/lib/runner";
 import { loadQuestions } from "../eval/run";
