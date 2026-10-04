@@ -25,14 +25,14 @@ export const TIERS: Record<Tier, TierSpec> = {
 		effort: null,
 		rank: 0,
 		description:
-			"Trivial or short tasks: greetings, quick factual lookups, simple rewrites, formatting, classification, short summaries. No real reasoning or coding needed.",
+			"Only short, closed-ended tasks with one clear correct answer and no multi-step reasoning: simple factual lookups, basic arithmetic or a single formula, simple formatting or classification. Not for logic puzzles or trick questions, role-play or persona tasks, editing or rewriting under constraints, extracting data into a structured format, creative writing, or anything with several instructions to satisfy at once.",
 	},
 	"sonnet-low": {
 		model: "claude-sonnet-5-5",
 		effort: "low",
 		rank: 1,
 		description:
-			"Routine tasks with light reasoning: straightforward questions, small code edits or explanations, standard writing, simple tool calls.",
+			"Routine tasks with light reasoning: straightforward questions, short logic puzzles, role-play, editing or rewriting under constraints, extraction into structured formats, small code edits or explanations, standard writing, simple tool calls.",
 	},
 	"sonnet-high": {
 		model: "claude-sonnet-5-5",
