@@ -1,0 +1,107 @@
+{
+	"win": 0,
+	"bothBad": 0,
+	"acceptable": 1,
+	"baselineAcceptable": 1,
+	"reason": "Both programs correctly scan .txt files recursively and return the top 5 words with a Counter. B is more focused and robust (streams line by line, tolerates bad encodings, handles apostrophes and digits, has a proper CLI), while A pads the answer with redundant demo and advanced variants.",
+	"setupIsA": true,
+	"judge": {
+		"text": "{\"verdict\": \"B\", \"acceptable\": {\"A\": true, \"B\": true}, \"reason\": \"Both programs correctly scan .txt files recursively and return the top 5 words with a Counter. B is more focused and robust (streams line by line, tolerates bad encodings, handles apostrophes and digits, has a proper CLI), while A pads the answer with redundant demo and advanced variants.\"}",
+		"model": "claude-fable-5-1",
+		"usage": {
+			"input_tokens": 2,
+			"output_tokens": 425,
+			"cache_read_input_tokens": 0,
+			"cache_creation_input_tokens": 5045
+		},
+		"costUsd": 0.12217,
+		"durationMs": 6375,
+		"stopReason": "end_turn",
+		"raw": {
+			"duration_api_ms": 4867,
+			"stop_reason": "end_turn",
+			"session_id": "f53e8e38-7140-452f-9ac9-01c5470515b3",
+			"total_cost_usd": 0.12217,
+			"usage": {
+				"input_tokens": 2,
+				"cache_creation_input_tokens": 5045,
+				"cache_read_input_tokens": 0,
+				"output_tokens": 425,
+				"output_tokens_details": { "thinking_tokens": 296 },
+				"server_tool_use": {
+					"web_search_requests": 0,
+					"web_fetch_requests": 0
+				},
+				"service_tier": "standard",
+				"cache_creation": {
+					"ephemeral_1h_input_tokens": 5045,
+					"ephemeral_5m_input_tokens": 0
+				},
+				"inference_geo": "not_available",
+				"iterations": [
+					{
+						"input_tokens": 2,
+						"output_tokens": 425,
+						"cache_read_input_tokens": 0,
+						"cache_creation_input_tokens": 5045,
+						"cache_creation": {
+							"ephemeral_5m_input_tokens": 0,
+							"ephemeral_1h_input_tokens": 5045
+						},
+						"type": "message"
+					}
+				],
+				"speed": "standard",
+				"fallback_credit": null
+			},
+			"modelUsage": {
+				"claude-fable-5-1": {
+					"inputTokens": 2,
+					"outputTokens": 425,
+					"cacheReadInputTokens": 0,
+					"cacheCreationInputTokens": 5045,
+					"webSearchRequests": 0,
+					"costUSD": 0.12217,
+					"contextWindow": 1000000,
+					"maxOutputTokens": 128000,
+					"thinkingTokens": 296,
+					"canonicalModel": "claude-fable-5-1",
+					"provider": "firstParty",
+					"costBasis": "list"
+				}
+			},
+			"permission_denials": [],
+			"terminal_reason": "completed",
+			"fast_mode_state": "off",
+			"fast_mode_disabled_reason": "sdk_opt_in_required",
+			"subagent_stats": {
+				"spawned": 0,
+				"requested": { "background": 0, "foreground": 0, "unset": 0 },
+				"started_in_background": 0,
+				"max_depth": 0,
+				"spawned_by_subagents": 0,
+				"completed": 0,
+				"failed": 0,
+				"killed": { "parent": 0, "user": 0, "system": 0 },
+				"refused": { "depth_limit": 0, "concurrency_limit": 0, "budget": 0 },
+				"by_type": {}
+			},
+			"is_error": false,
+			"num_turns": 1,
+			"subtype": "success",
+			"api_error_status": null,
+			"result": "{\"verdict\": \"B\", \"acceptable\": {\"A\": true, \"B\": true}, \"reason\": \"Both programs correctly scan .txt files recursively and return the top 5 words with a Counter. B is more focused and robust (streams line by line, tolerates bad encodings, handles apostrophes and digits, has a proper CLI), while A pads the answer with redundant demo and advanced variants.\"}",
+			"ttft_ms": 3753,
+			"type": "result",
+			"duration_ms": 6375,
+			"uuid": "a23fa835-ded9-4ffb-866c-1f2f95c9cf0f",
+			"ttft_stream_ms": 734,
+			"time_to_request_ms": 56,
+			"first_content_frame_ms": 734,
+			"queued_turn_count": 0,
+			"result_index": 0
+		},
+		"attempts": 1
+	},
+	"text": "# Top 5 Words Counter\n\nI'll create a Python program that reads all text files in a directory and returns the top 5 most common words.\n\n```python\nimport os\nimport re\nfrom collections import Counter\nfrom pathlib import Path\nfrom typing import List, Tuple\n\ndef get_top_words(directory: str, top_n: int = 5) -> List[Tuple[str, int]]:\n    \"\"\"\n    Read all text files in a directory and return the top N most common words.\n    \n    Args:\n        directory: Path to the directory to search\n        top_n: Number of top words to return (default: 5)\n    \n    Returns:\n        List of tuples containing (word, count) sorted by count in descending order\n    \"\"\"\n    \n    # Check if directory exists\n    if not os.path.isdir(directory):\n        raise ValueError(f\"Directory '{directory}' does not exist\")\n    \n    # Word counter\n    word_counts = Counter()\n    \n    # Walk through directory and process all .txt files\n    for root, dirs, files in os.walk(directory):\n        for file in files:\n            if file.endswith('.txt'):\n                filepath = os.path.join(root, file)\n                try:\n                    with open(filepath, 'r', encoding='utf-8') as f:\n                        text = f.read()\n                        # Convert to lowercase and extract words\n                        # Remove punctuation and split by whitespace\n                        words = re.findall(r'\\b[a-z]+\\b', text.lower())\n                        word_counts.update(words)\n                except Exception as e:\n                    print(f\"Warning: Could not read file '{filepath}': {e}\")\n    \n    # Return top N words\n    return word_counts.most_common(top_n)\n\n\ndef print_results(top_words: List[Tuple[str, int]]) -> None:\n    \"\"\"Print results in a formatted table.\"\"\"\n    if not top_words:\n        print(\"No words found!\")\n        return\n    \n    print(f\"\\n{'Rank':<6}{'Word':<20}{'Count':<10}\")\n    print(\"-\" * 36)\n    for rank, (word, count) in enumerate(top_words, 1):\n        print(f\"{rank:<6}{word:<20}{count:<10}\")\n\n\nif __name__ == \"__main__\":\n    import sys\n    \n    # Get directory from command line argument or use current directory\n    directory = sys.argv[1] if len(sys.argv) > 1 else \".\"\n    \n    print(f\"Scanning directory: {directory}\")\n    \n    try:\n        top_words = get_top_words(directory)\n        print_results(top_words)\n    except ValueError as e:\n        print(f\"Error: {e}\")\n```\n\n## Usage Examples\n\n### Example 1: Basic Usage\n```bash\npython top_words.py /path/to/directory\n```\n\n### Example 2: Current Directory\n```bash\npython top_words.py\n```\n\n### Example 3: Using in Another Script\n```python\nfrom top_words import get_top_words\n\n# Get top 5 words\nresults = get_top_words(\"./documents\")\n\n# Get top 10 words\nresults = get_top_words(\"./documents\", top_n=10)\n\nfor word, count in results:\n    print(f\"{word}: {count}\")\n```\n\n## Demo with Sample Files\n\nLet me create a demo that generates sample files and tests the program:\n\n```python\nimport os\nimport tempfile\nfrom top_words import get_top_words, print_results\n\ndef demo():\n    \"\"\"Create sample text files and demonstrate the word counter.\"\"\"\n    \n    # Create a temporary directory with sample files\n    with tempfile.TemporaryDirectory() as temp_dir:\n        # Create sample text files\n        files_content = {\n            \"file1.txt\": \"Python is great. Python is powerful. Python is fun.\",\n            \"file2.txt\": \"Data science uses Python. Machine learning uses Python.\",\n            \"file3.txt\": \"The quick brown fox jumps over the lazy dog. The dog runs.\",\n        }\n        \n        for filename, content in files_content.items():\n            filepath = os.path.join(temp_dir, filename)\n            with open(filepath, 'w') as f:\n                f.write(content)\n        \n        print(f\"Created sample files in: {temp_dir}\\n\")\n        \n        # Get and display results\n        top_words = get_top_words(temp_dir)\n        print_results(top_words)\n\nif __name__ == \"__main__\":\n    demo()\n```\n\n## Advanced Version with More Options\n\n```python\nimport os\nimport re\nfrom collections import Counter\nfrom typing import List, Tuple, Set\n\ndef get_top_words_advanced(\n    directory: str,\n    top_n: int = 5,\n    exclude_stopwords: bool = True,\n    min_word_length: int = 1\n) -> List[Tuple[str, int]]:\n    \"\"\"\n    Advanced version with stopword filtering and minimum word length.\n    \n    Args:\n        directory: Path to the directory to search\n        top_n: Number of top words to return\n        exclude_stopwords: Whether to exclude common English stopwords\n        min_word_length: Minimum length of words to include\n    \n    Returns:\n        List of tuples containing (word, count) sorted by count\n    \"\"\"\n    \n    # Common English stopwords\n    STOPWORDS = {\n        'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',\n        'of', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has',\n        'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may',\n        'might', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he',\n        'she', 'it', 'we', 'they', 'what', 'which', 'who', 'when', 'where'\n    }\n    \n    if not os.path.isdir(directory):\n        raise ValueError(f\"Directory '{directory}' does not exist\")\n    \n    word_counts = Counter()\n    files_processed = 0\n    \n    for root, dirs, files in os.walk(directory):\n        for file in files:\n            if file.endswith('.txt'):\n                filepath = os.path.join(root, file)\n                try:\n                    with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:\n                        text = f.read()\n                        words = re.findall(r'\\b[a-z]+\\b', text.lower())\n                        \n                        # Filter words\n                        filtered_words = [\n                            w for w in words\n                            if len(w) >= min_word_length\n                            and (not exclude_stopwords or w not in STOPWORDS)\n                        ]\n                        \n                        word_counts.update(filtered_words)\n                        files_processed += 1\n                except Exception as e:\n                    print(f\"Warning: Could not read '{filepath}': {e}\")\n    \n    print(f\"Processed {files_processed} file(s)\")\n    return word_counts.most_common(top_n)\n```\n\n## Key Features\n\n✅ **Recursive directory scanning** - Finds all `.txt` files in subdirectories  \n✅ **Robust text processing** - Handles punctuation and case conversion  \n✅ **Error handling** - Gracefully handles file read errors  \n✅ **Flexible** - Works with any directory path  \n✅ **Advanced version** - Includes stopword filtering and word length filtering  \n✅ **Well-documented** - Clear docstrings and usage examples  \n\nWould you like me to create test files and run a demonstration, or would you like additional features like filtering by stopwords, handling different encodings, or generating statistics?"
+}

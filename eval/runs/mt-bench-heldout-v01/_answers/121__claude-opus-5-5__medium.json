@@ -1,0 +1,95 @@
+{
+	"text": "Here's a Python program that recursively reads every `.txt` file under a directory and returns the 5 most frequent words:\n\n```python\n#!/usr/bin/env python3\n\"\"\"\ntop_words.py - Find the most frequent words across all text files in a directory.\n\nUsage:\n    python top_words.py <directory> [-n N] [--ext .txt .md] [--case-sensitive]\n\"\"\"\n\nimport argparse\nimport re\nimport sys\nfrom collections import Counter\nfrom pathlib import Path\n\n# Matches words made of letters/digits, allowing internal apostrophes (e.g. \"don't\")\nWORD_RE = re.compile(r\"[A-Za-z0-9]+(?:'[A-Za-z0-9]+)*\")\n\n\ndef iter_text_files(directory: Path, extensions: tuple[str, ...]):\n    \"\"\"Yield all files under `directory` (recursively) with the given extensions.\"\"\"\n    for path in directory.rglob(\"*\"):\n        if path.is_file() and path.suffix.lower() in extensions:\n            yield path\n\n\ndef count_words_in_file(path: Path, counter: Counter, case_sensitive: bool = False) -> None:\n    \"\"\"Stream a file line by line and update the counter with its words.\"\"\"\n    try:\n        with path.open(\"r\", encoding=\"utf-8\", errors=\"ignore\") as f:\n            for line in f:\n                if not case_sensitive:\n                    line = line.lower()\n                counter.update(WORD_RE.findall(line))\n    except OSError as e:\n        print(f\"Warning: could not read {path}: {e}\", file=sys.stderr)\n\n\ndef top_words(directory: str | Path,\n              n: int = 5,\n              extensions: tuple[str, ...] = (\".txt\",),\n              case_sensitive: bool = False) -> list[tuple[str, int]]:\n    \"\"\"\n    Return the top-n most common words across all text files under `directory`.\n\n    Returns a list of (word, count) tuples sorted by count descending.\n    \"\"\"\n    directory = Path(directory)\n    if not directory.is_dir():\n        raise NotADirectoryError(f\"{directory} is not a directory\")\n\n    extensions = tuple(ext.lower() if ext.startswith(\".\") else f\".{ext.lower()}\"\n                       for ext in extensions)\n\n    counter: Counter = Counter()\n    for path in iter_text_files(directory, extensions):\n        count_words_in_file(path, counter, case_sensitive)\n\n    return counter.most_common(n)\n\n\ndef main() -> None:\n    parser = argparse.ArgumentParser(description=\"Find the top-N most frequent words in text files.\")\n    parser.add_argument(\"directory\", help=\"Directory to search (recursively)\")\n    parser.add_argument(\"-n\", type=int, default=5, help=\"Number of top words to show (default: 5)\")\n    parser.add_argument(\"--ext\", nargs=\"+\", default=[\".txt\"],\n                        help=\"File extensions to include (default: .txt)\")\n    parser.add_argument(\"--case-sensitive\", action=\"store_true\",\n                        help=\"Treat 'The' and 'the' as different words\")\n    args = parser.parse_args()\n\n    try:\n        results = top_words(args.directory, args.n, tuple(args.ext), args.case_sensitive)\n    except NotADirectoryError as e:\n        sys.exit(f\"Error: {e}\")\n\n    if not results:\n        print(\"No words found.\")\n        return\n\n    print(f\"Top {len(results)} words:\")\n    width = max(len(word) for word, _ in results)\n    for rank, (word, count) in enumerate(results, 1):\n        print(f\"{rank:>2}. {word:<{width}}  {count}\")\n\n\nif __name__ == \"__main__\":\n    main()\n```\n\n### How it works\n\n1. **File discovery** – `Path.rglob(\"*\")` walks the directory tree recursively, keeping files whose extension matches (`.txt` by default).\n2. **Tokenization** – A regex extracts words (letters/digits, with internal apostrophes like `don't`), ignoring punctuation.\n3. **Normalization** – Words are lowercased by default so `The` and `the` count together.\n4. **Counting** – A single `collections.Counter` aggregates counts across all files. Files are read line by line, so large files don't need to fit in memory.\n5. **Result** – `Counter.most_common(n)` returns the top-N `(word, count)` pairs.\n\n### Example\n\n```\n$ python top_words.py ./docs\nTop 5 words:\n 1. the   1342\n 2. and    871\n 3. of     764\n 4. to     702\n 5. a      598\n```\n\nUse it as a library too:\n\n```python\nfrom top_words import top_words\nprint(top_words(\"./docs\"))          # [('the', 1342), ('and', 871), ...]\n```\n\n### Optional: ignoring stop words\nCommon words like \"the\" and \"and\" usually dominate. To filter them out, add a stop-word set and filter before updating:\n\n```python\nSTOP_WORDS = {\"the\", \"and\", \"a\", \"an\", \"of\", \"to\", \"in\", \"is\", \"it\", \"that\", \"for\", \"on\", \"with\", \"as\", \"was\"}\n\ncounter.update(w for w in WORD_RE.findall(line) if w not in STOP_WORDS)\n```",
+	"model": "claude-opus-5-5",
+	"usage": {
+		"input_tokens": 2,
+		"output_tokens": 1708,
+		"cache_read_input_tokens": 0,
+		"cache_creation_input_tokens": 671
+	},
+	"costUsd": 0.039536,
+	"durationMs": 15547,
+	"stopReason": "end_turn",
+	"raw": {
+		"duration_api_ms": 13918,
+		"stop_reason": "end_turn",
+		"session_id": "6e3286e2-164a-411e-b157-51032eaac66d",
+		"total_cost_usd": 0.039536,
+		"usage": {
+			"input_tokens": 2,
+			"cache_creation_input_tokens": 671,
+			"cache_read_input_tokens": 0,
+			"output_tokens": 1708,
+			"output_tokens_details": { "thinking_tokens": 22 },
+			"server_tool_use": { "web_search_requests": 0, "web_fetch_requests": 0 },
+			"service_tier": "standard",
+			"cache_creation": {
+				"ephemeral_1h_input_tokens": 671,
+				"ephemeral_5m_input_tokens": 0
+			},
+			"inference_geo": "not_available",
+			"iterations": [
+				{
+					"input_tokens": 2,
+					"output_tokens": 1708,
+					"cache_read_input_tokens": 0,
+					"cache_creation_input_tokens": 671,
+					"cache_creation": {
+						"ephemeral_5m_input_tokens": 0,
+						"ephemeral_1h_input_tokens": 671
+					},
+					"type": "message"
+				}
+			],
+			"speed": "standard",
+			"fallback_credit": null
+		},
+		"modelUsage": {
+			"claude-opus-5-5": {
+				"inputTokens": 2,
+				"outputTokens": 1708,
+				"cacheReadInputTokens": 0,
+				"cacheCreationInputTokens": 671,
+				"webSearchRequests": 0,
+				"costUSD": 0.039536,
+				"contextWindow": 1000000,
+				"maxOutputTokens": 128000,
+				"thinkingTokens": 22,
+				"canonicalModel": "claude-opus-5-5",
+				"provider": "firstParty",
+				"costBasis": "list"
+			}
+		},
+		"permission_denials": [],
+		"terminal_reason": "completed",
+		"fast_mode_state": "off",
+		"fast_mode_disabled_reason": "sdk_opt_in_required",
+		"subagent_stats": {
+			"spawned": 0,
+			"requested": { "background": 0, "foreground": 0, "unset": 0 },
+			"started_in_background": 0,
+			"max_depth": 0,
+			"spawned_by_subagents": 0,
+			"completed": 0,
+			"failed": 0,
+			"killed": { "parent": 0, "user": 0, "system": 0 },
+			"refused": { "depth_limit": 0, "concurrency_limit": 0, "budget": 0 },
+			"by_type": {}
+		},
+		"is_error": false,
+		"num_turns": 1,
+		"subtype": "success",
+		"api_error_status": null,
+		"result": "Here's a Python program that recursively reads every `.txt` file under a directory and returns the 5 most frequent words:\n\n```python\n#!/usr/bin/env python3\n\"\"\"\ntop_words.py - Find the most frequent words across all text files in a directory.\n\nUsage:\n    python top_words.py <directory> [-n N] [--ext .txt .md] [--case-sensitive]\n\"\"\"\n\nimport argparse\nimport re\nimport sys\nfrom collections import Counter\nfrom pathlib import Path\n\n# Matches words made of letters/digits, allowing internal apostrophes (e.g. \"don't\")\nWORD_RE = re.compile(r\"[A-Za-z0-9]+(?:'[A-Za-z0-9]+)*\")\n\n\ndef iter_text_files(directory: Path, extensions: tuple[str, ...]):\n    \"\"\"Yield all files under `directory` (recursively) with the given extensions.\"\"\"\n    for path in directory.rglob(\"*\"):\n        if path.is_file() and path.suffix.lower() in extensions:\n            yield path\n\n\ndef count_words_in_file(path: Path, counter: Counter, case_sensitive: bool = False) -> None:\n    \"\"\"Stream a file line by line and update the counter with its words.\"\"\"\n    try:\n        with path.open(\"r\", encoding=\"utf-8\", errors=\"ignore\") as f:\n            for line in f:\n                if not case_sensitive:\n                    line = line.lower()\n                counter.update(WORD_RE.findall(line))\n    except OSError as e:\n        print(f\"Warning: could not read {path}: {e}\", file=sys.stderr)\n\n\ndef top_words(directory: str | Path,\n              n: int = 5,\n              extensions: tuple[str, ...] = (\".txt\",),\n              case_sensitive: bool = False) -> list[tuple[str, int]]:\n    \"\"\"\n    Return the top-n most common words across all text files under `directory`.\n\n    Returns a list of (word, count) tuples sorted by count descending.\n    \"\"\"\n    directory = Path(directory)\n    if not directory.is_dir():\n        raise NotADirectoryError(f\"{directory} is not a directory\")\n\n    extensions = tuple(ext.lower() if ext.startswith(\".\") else f\".{ext.lower()}\"\n                       for ext in extensions)\n\n    counter: Counter = Counter()\n    for path in iter_text_files(directory, extensions):\n        count_words_in_file(path, counter, case_sensitive)\n\n    return counter.most_common(n)\n\n\ndef main() -> None:\n    parser = argparse.ArgumentParser(description=\"Find the top-N most frequent words in text files.\")\n    parser.add_argument(\"directory\", help=\"Directory to search (recursively)\")\n    parser.add_argument(\"-n\", type=int, default=5, help=\"Number of top words to show (default: 5)\")\n    parser.add_argument(\"--ext\", nargs=\"+\", default=[\".txt\"],\n                        help=\"File extensions to include (default: .txt)\")\n    parser.add_argument(\"--case-sensitive\", action=\"store_true\",\n                        help=\"Treat 'The' and 'the' as different words\")\n    args = parser.parse_args()\n\n    try:\n        results = top_words(args.directory, args.n, tuple(args.ext), args.case_sensitive)\n    except NotADirectoryError as e:\n        sys.exit(f\"Error: {e}\")\n\n    if not results:\n        print(\"No words found.\")\n        return\n\n    print(f\"Top {len(results)} words:\")\n    width = max(len(word) for word, _ in results)\n    for rank, (word, count) in enumerate(results, 1):\n        print(f\"{rank:>2}. {word:<{width}}  {count}\")\n\n\nif __name__ == \"__main__\":\n    main()\n```\n\n### How it works\n\n1. **File discovery** – `Path.rglob(\"*\")` walks the directory tree recursively, keeping files whose extension matches (`.txt` by default).\n2. **Tokenization** – A regex extracts words (letters/digits, with internal apostrophes like `don't`), ignoring punctuation.\n3. **Normalization** – Words are lowercased by default so `The` and `the` count together.\n4. **Counting** – A single `collections.Counter` aggregates counts across all files. Files are read line by line, so large files don't need to fit in memory.\n5. **Result** – `Counter.most_common(n)` returns the top-N `(word, count)` pairs.\n\n### Example\n\n```\n$ python top_words.py ./docs\nTop 5 words:\n 1. the   1342\n 2. and    871\n 3. of     764\n 4. to     702\n 5. a      598\n```\n\nUse it as a library too:\n\n```python\nfrom top_words import top_words\nprint(top_words(\"./docs\"))          # [('the', 1342), ('and', 871), ...]\n```\n\n### Optional: ignoring stop words\nCommon words like \"the\" and \"and\" usually dominate. To filter them out, add a stop-word set and filter before updating:\n\n```python\nSTOP_WORDS = {\"the\", \"and\", \"a\", \"an\", \"of\", \"to\", \"in\", \"is\", \"it\", \"that\", \"for\", \"on\", \"with\", \"as\", \"was\"}\n\ncounter.update(w for w in WORD_RE.findall(line) if w not in STOP_WORDS)\n```",
+		"ttft_ms": 938,
+		"type": "result",
+		"duration_ms": 15547,
+		"uuid": "adf5a44f-263c-4e4f-afa1-810d67aa0173",
+		"ttft_stream_ms": 867,
+		"time_to_request_ms": 66,
+		"first_content_frame_ms": 867,
+		"queued_turn_count": 0,
+		"result_index": 0
+	},
+	"attempts": 1
+}

@@ -1,0 +1,107 @@
+{
+	"win": 0.5,
+	"bothBad": 0,
+	"acceptable": 1,
+	"baselineAcceptable": 1,
+	"reason": "Both programs correctly walk the directory recursively, tokenize and count words across all .txt files with a Counter, and return the top 5 via most_common. They are functionally equivalent in correctness, completeness and clarity, with only minor stylistic differences.",
+	"setupIsA": false,
+	"judge": {
+		"text": "{\"verdict\": \"tie\", \"acceptable\": {\"A\": true, \"B\": true}, \"reason\": \"Both programs correctly walk the directory recursively, tokenize and count words across all .txt files with a Counter, and return the top 5 via most_common. They are functionally equivalent in correctness, completeness and clarity, with only minor stylistic differences.\"}",
+		"model": "claude-fable-5-1",
+		"usage": {
+			"input_tokens": 2,
+			"output_tokens": 282,
+			"cache_read_input_tokens": 0,
+			"cache_creation_input_tokens": 4207
+		},
+		"costUsd": 0.09825999999999999,
+		"durationMs": 4692,
+		"stopReason": "end_turn",
+		"raw": {
+			"duration_api_ms": 3383,
+			"stop_reason": "end_turn",
+			"session_id": "a1445fc6-132e-49f9-beef-7ddb1ce81a08",
+			"total_cost_usd": 0.09825999999999999,
+			"usage": {
+				"input_tokens": 2,
+				"cache_creation_input_tokens": 4207,
+				"cache_read_input_tokens": 0,
+				"output_tokens": 282,
+				"output_tokens_details": { "thinking_tokens": 166 },
+				"server_tool_use": {
+					"web_search_requests": 0,
+					"web_fetch_requests": 0
+				},
+				"service_tier": "standard",
+				"cache_creation": {
+					"ephemeral_1h_input_tokens": 4207,
+					"ephemeral_5m_input_tokens": 0
+				},
+				"inference_geo": "not_available",
+				"iterations": [
+					{
+						"input_tokens": 2,
+						"output_tokens": 282,
+						"cache_read_input_tokens": 0,
+						"cache_creation_input_tokens": 4207,
+						"cache_creation": {
+							"ephemeral_5m_input_tokens": 0,
+							"ephemeral_1h_input_tokens": 4207
+						},
+						"type": "message"
+					}
+				],
+				"speed": "standard",
+				"fallback_credit": null
+			},
+			"modelUsage": {
+				"claude-fable-5-1": {
+					"inputTokens": 2,
+					"outputTokens": 282,
+					"cacheReadInputTokens": 0,
+					"cacheCreationInputTokens": 4207,
+					"webSearchRequests": 0,
+					"costUSD": 0.09825999999999999,
+					"contextWindow": 1000000,
+					"maxOutputTokens": 128000,
+					"thinkingTokens": 166,
+					"canonicalModel": "claude-fable-5-1",
+					"provider": "firstParty",
+					"costBasis": "list"
+				}
+			},
+			"permission_denials": [],
+			"terminal_reason": "completed",
+			"fast_mode_state": "off",
+			"fast_mode_disabled_reason": "sdk_opt_in_required",
+			"subagent_stats": {
+				"spawned": 0,
+				"requested": { "background": 0, "foreground": 0, "unset": 0 },
+				"started_in_background": 0,
+				"max_depth": 0,
+				"spawned_by_subagents": 0,
+				"completed": 0,
+				"failed": 0,
+				"killed": { "parent": 0, "user": 0, "system": 0 },
+				"refused": { "depth_limit": 0, "concurrency_limit": 0, "budget": 0 },
+				"by_type": {}
+			},
+			"is_error": false,
+			"num_turns": 1,
+			"subtype": "success",
+			"api_error_status": null,
+			"result": "{\"verdict\": \"tie\", \"acceptable\": {\"A\": true, \"B\": true}, \"reason\": \"Both programs correctly walk the directory recursively, tokenize and count words across all .txt files with a Counter, and return the top 5 via most_common. They are functionally equivalent in correctness, completeness and clarity, with only minor stylistic differences.\"}",
+			"ttft_ms": 2269,
+			"type": "result",
+			"duration_ms": 4692,
+			"uuid": "c2e41a80-ec37-42b6-a282-ce0ad3fbad80",
+			"ttft_stream_ms": 769,
+			"time_to_request_ms": 38,
+			"first_content_frame_ms": 769,
+			"queued_turn_count": 0,
+			"result_index": 0
+		},
+		"attempts": 1
+	},
+	"text": "Here's a Python program that recursively scans a directory for `.txt` files and returns the top 5 most frequent words:\n\n```python\n#!/usr/bin/env python3\n\"\"\"\ntop_words.py - Find the top-N most frequent words across all text files in a directory.\n\nUsage:\n    python top_words.py <directory> [-n 5] [--ext .txt] [--case-sensitive]\n\"\"\"\n\nimport argparse\nimport re\nimport sys\nfrom collections import Counter\nfrom pathlib import Path\n\nWORD_PATTERN = re.compile(r\"[A-Za-z0-9']+\")\n\n\ndef iter_text_files(directory: Path, extensions: set[str]):\n    \"\"\"Yield all files under `directory` (recursively) with a matching extension.\"\"\"\n    for path in directory.rglob(\"*\"):\n        if path.is_file() and path.suffix.lower() in extensions:\n            yield path\n\n\ndef count_words_in_file(path: Path, counter: Counter, case_sensitive: bool) -> None:\n    \"\"\"Stream a file line by line and update the counter (memory-efficient).\"\"\"\n    try:\n        with path.open(\"r\", encoding=\"utf-8\", errors=\"ignore\") as f:\n            for line in f:\n                if not case_sensitive:\n                    line = line.lower()\n                words = (w.strip(\"'\") for w in WORD_PATTERN.findall(line))\n                counter.update(w for w in words if w)\n    except OSError as e:\n        print(f\"Warning: could not read {path}: {e}\", file=sys.stderr)\n\n\ndef top_words(directory: str, n: int = 5, extensions=(\".txt\",),\n              case_sensitive: bool = False) -> list[tuple[str, int]]:\n    \"\"\"Return the top-n (word, count) pairs across all matching files.\"\"\"\n    root = Path(directory)\n    if not root.is_dir():\n        raise NotADirectoryError(f\"'{directory}' is not a valid directory\")\n\n    exts = {e.lower() if e.startswith(\".\") else f\".{e.lower()}\" for e in extensions}\n    counter = Counter()\n    for file_path in iter_text_files(root, exts):\n        count_words_in_file(file_path, counter, case_sensitive)\n\n    return counter.most_common(n)\n\n\ndef main():\n    parser = argparse.ArgumentParser(description=\"Find the most frequent words in text files.\")\n    parser.add_argument(\"directory\", help=\"Directory to scan (recursively)\")\n    parser.add_argument(\"-n\", \"--top\", type=int, default=5, help=\"Number of top words (default: 5)\")\n    parser.add_argument(\"--ext\", nargs=\"+\", default=[\".txt\"], help=\"File extensions (default: .txt)\")\n    parser.add_argument(\"--case-sensitive\", action=\"store_true\", help=\"Treat 'The' and 'the' as different\")\n    args = parser.parse_args()\n\n    try:\n        results = top_words(args.directory, args.top, args.ext, args.case_sensitive)\n    except NotADirectoryError as e:\n        print(f\"Error: {e}\", file=sys.stderr)\n        sys.exit(1)\n\n    if not results:\n        print(\"No words found.\")\n        return\n\n    print(f\"Top {len(results)} words:\")\n    for rank, (word, count) in enumerate(results, 1):\n        print(f\"{rank}. {word:<20} {count}\")\n\n\nif __name__ == \"__main__\":\n    main()\n```\n\n## Usage\n\n```bash\npython top_words.py ./my_docs\npython top_words.py ./my_docs -n 10 --ext .txt .md\n```\n\nOr as a library:\n\n```python\nfrom top_words import top_words\nprint(top_words(\"./my_docs\"))   # [('the', 120), ('and', 87), ...]\n```\n\n## Example output\n\n```\nTop 5 words:\n1. the                  120\n2. and                  87\n3. of                   64\n4. to                   59\n5. a                    51\n```\n\n## Design notes\n\n- **Recursive search**: `Path.rglob(\"*\")` covers all subdirectories.\n- **Memory-efficient**: Files are read line by line, so large files don't need to fit in memory. A single `Counter` is shared across all files.\n- **Tokenization**: The regex keeps letters, digits, and apostrophes, so `don't` stays one word. Leading and trailing quotes are stripped.\n- **Case-insensitive by default**: `The` and `the` count as the same word.\n- **Robust**: Unreadable files produce a warning and are skipped. Invalid UTF-8 bytes are ignored.\n- **Ties**: `Counter.most_common` puts equal counts in the order the words were first seen.\n\n**Optional stop-word filtering:** Common words like \"the\" and \"and\" usually dominate the results. To skip them, add a set such as `STOP_WORDS = {\"the\", \"a\", \"and\", \"of\", \"to\", \"in\", \"is\"}` and filter with `counter.update(w for w in words if w and w not in STOP_WORDS)`."
+}

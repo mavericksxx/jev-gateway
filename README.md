@@ -18,17 +18,29 @@ Every Jev decision costs about $0.00003 and 0.3–0.6 s. Every feature fails ope
 |---|---|---|---|---|---|
 | Always Opus 5.5, medium effort (reference) | 96% | — | 99% (97–100) | — | $0.025 |
 | Always Opus 5.5, low effort | 93% | 22% | 95% (88–100) | 14% | $0.023 |
-| Jev router, v0.1 tiers | 80% | 39% | not run | | |
+| Jev router, v0.1 tiers | 80% | 39% | 85% (74–96) | 49% | $0.015 |
 | **Jev router, tuned tiers** | **93%** | **52%** | **88% (77–98)** | **50%** | **$0.014** |
 | Tuned router + cheap-first retry | 75% | 64% | 68% (53–82) | 75% | $0.009 |
 
 What this says:
 - **The tuned router halves the cost.** On held-out questions it saved 50% at 88% acceptable, versus 99% for always-Opus; cost per acceptable answer fell from $0.025 to $0.014. The quality gap is real but the intervals overlap at this sample size.
 - **Tuning came from narrowing the Haiku tier.** v0.1 sent 16 of 40 questions to Haiku and lost most of its quality there; the tuned descriptions send most questions to Sonnet at low effort (28–32 of 40), which stays around 90% acceptable at about 60% cheaper.
+- **But most of the tuning gain was specific to the tuning set.** On the tuning set it lifted acceptable answers from 80% to 93%; on held-out questions only from 85% to 88% (v0.1 sent 14 of 40 to Haiku there), at about the same cost. Both routers save roughly half; the tuned one is slightly better, within noise.
 - **Opus at low effort is the safe option**: 14–22% cheaper with no measurable quality loss.
-- **Cheap-first retry should stay off.** Jev's "does this fully answer it?" check accepted Haiku's answer 91% of the time on held-out questions, including many the judge rated unacceptable.
+- **Cheap-first retry should stay off, at any threshold.** Jev's "does this fully answer it?" check accepted Haiku's answer 91% of the time on held-out questions, including many the judge rated unacceptable. Re-scoring the saved answers at other pass thresholds (no new calls) doesn't fix it: Jev's pass probability separates acceptable from unacceptable Haiku answers only weakly (AUROC 0.70; scores sit between 0.8 and 0.97), so a threshold low enough to save money drops quality, and one high enough to keep quality costs more than the router alone, because rejected questions pay for Haiku and then the routed model.
 
-Caveats: one run per question; MT-Bench is public and may be in the models' training data; answers came from `claude -p` (Claude Code print mode with a minimal system prompt), which measures the routing decisions, not the proxy itself; costs are API-equivalent list prices. Per-question results: `eval/runs/mt-bench/` (v0.1), `eval/runs/mt-bench-r2/` (tuned, tuning set), `eval/runs/mt-bench-heldout/` (tuned, held-out); each has `summary.md` and `report.html`.
+  | Pass threshold (80 questions) | Acceptable | Cost per acceptable answer |
+  |---|---|---|
+  | Router alone | 90.0% | **$0.0151** |
+  | 0.7 (default) | 71.2% | $0.0122 |
+  | 0.8 | 76.2% | $0.0132 |
+  | 0.85 | 81.2% | $0.0169 |
+  | 0.9 | 91.2% | $0.0178 |
+  | 0.95 | 90.0% | $0.0200 |
+
+  0.9, the best threshold on the tuning set that keeps quality, was 6% more expensive per acceptable answer than the router alone on held-out questions. Thresholds below 0.7 couldn't be scored, since the eval only graded Haiku answers Jev passed.
+
+Caveats: one run per question; MT-Bench is public and may be in the models' training data; answers came from `claude -p` (Claude Code print mode with a minimal system prompt), which measures the routing decisions, not the proxy itself; costs are API-equivalent list prices. Per-question results: `eval/runs/mt-bench/` (v0.1), `eval/runs/mt-bench-r2/` (tuned, tuning set), `eval/runs/mt-bench-heldout/` (tuned, held-out), `eval/runs/mt-bench-heldout-v01/` (v0.1, held-out); each has `summary.md` and `report.html`.
 
 ## Quick start
 
@@ -93,8 +105,6 @@ See [SPEC.md](SPEC.md) for the design and build phases.
 
 ## Next steps
 
-- Run the old (v0.1) router on the held-out set too, for a like-for-like comparison of the tuning.
-- Rework cheap-first retry: a stricter Jev check (or a threshold around 0.9) before it can be turned on.
 - Repeat runs (2–3 per question) to narrow the confidence intervals.
 - Test end-to-end through the proxy against the real Anthropic API.
 

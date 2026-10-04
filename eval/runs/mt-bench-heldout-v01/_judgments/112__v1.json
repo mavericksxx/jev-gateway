@@ -1,0 +1,8 @@
+{
+	"win": 0.5,
+	"bothBad": 0,
+	"reason": "identical answers",
+	"setupIsA": true,
+	"judge": null,
+	"text": "- **Year 1:** $8,000\n- **Year 2:** $8,000 ÷ 2 = $4,000\n\n**Total:** $8,000 + $4,000 = **$12,000**"
+}
