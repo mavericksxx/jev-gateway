@@ -1,17 +1,21 @@
+import { createHash } from "node:crypto";
 import {
 	appendFileSync,
+	copyFileSync,
 	existsSync,
 	mkdirSync,
+	readdirSync,
 	readFileSync,
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { TIERS, type Tier } from "../../src/routing/tiers";
+import { ALL_TIERS, TIERS, type Tier } from "../../src/routing/tiers";
 import type { RouteDecision } from "../../src/types";
 import { ClaudeError, type ClaudeResult, type RunClaude } from "./claude";
 import {
 	JUDGE_MODEL,
 	JUDGE_VERSION,
+	type Judgment,
 	judgeAcceptable,
 	judgeAnswer,
 } from "./judge";
@@ -48,7 +52,23 @@ export interface Deps {
 	) => Promise<CascadeOutcome>;
 	outDir: string;
 	timeoutMs: number;
+	/** Tiers offered to the router (default ALL_TIERS); part of the route-cache fingerprint. */
+	offeredTiers?: Tier[];
 }
+
+export const sha = (s: string): string =>
+	createHash("sha256").update(s).digest("hex").slice(0, 16);
+
+/** Short fingerprint of the tier table and the tiers offered to the router. */
+export const tiersFingerprint = (offered: Tier[] = ALL_TIERS): string =>
+	sha(JSON.stringify({ tiers: TIERS, offered }));
+
+const pairKey = (id: number, setup: string, base: string): string =>
+	`${id}__${sha(JSON.stringify([setup, base]))}__j${JUDGE_VERSION}`;
+const baseKey = (id: number, base: string): string =>
+	`${id}__base-${sha(base)}__j${JUDGE_VERSION}`;
+const cascadeKey = (id: number, haikuText: string): string =>
+	`${id}__cascade__${sha(haikuText)}`;
 
 export const ACCEPT_THRESHOLD = 0.7;
 const SYSTEM = "You are a helpful assistant.";
@@ -74,7 +94,7 @@ const readJson = <T>(p: string): T | null =>
 
 interface RowLike {
 	prompt_id: number;
-	meta: { judge_version?: number };
+	meta: { judge_version?: number; tiers_fp?: string };
 }
 
 const readRows = (variantDir: string): RowLike[] => {
@@ -86,11 +106,15 @@ const readRows = (variantDir: string): RowLike[] => {
 		.map((l) => JSON.parse(l) as RowLike);
 };
 
-/** Ids graded under the current judge version; older rows are re-judged and replaced. */
-const doneIds = (variantDir: string): Set<number> =>
+/** Ids graded under the current judge version (and, for routed setups, the current tier fingerprint); others are redone and replaced. */
+const doneIds = (variantDir: string, fp: string | null): Set<number> =>
 	new Set(
 		readRows(variantDir)
-			.filter((r) => r.meta?.judge_version === JUDGE_VERSION)
+			.filter(
+				(r) =>
+					r.meta?.judge_version === JUDGE_VERSION &&
+					(fp === null || r.meta?.tiers_fp === fp),
+			)
 			.map((r) => r.prompt_id),
 	);
 
@@ -163,7 +187,11 @@ const logError = (
 /** Process one question across all four setups. Never throws. */
 export async function runQuestion(q: Question, deps: Deps): Promise<void> {
 	const { outDir, runClaude, timeoutMs } = deps;
-	const todo = VARIANTS.filter((v) => !doneIds(join(outDir, v)).has(q.id));
+	const fp = tiersFingerprint(deps.offeredTiers);
+	const todo = VARIANTS.filter(
+		(v) =>
+			!doneIds(join(outDir, v), v === "v2" || v === "v3" ? fp : null).has(q.id),
+	);
 	if (todo.length === 0) return;
 	const used = new Set<string>();
 
@@ -194,7 +222,7 @@ export async function runQuestion(q: Question, deps: Deps): Promise<void> {
 	let route: RouteDecision | null = null;
 	const getRoute = async (): Promise<RouteDecision> => {
 		if (route) return route;
-		const file = join(outDir, "_routes", `${q.id}.json`);
+		const file = join(outDir, "_routes", `${q.id}__${fp}.json`);
 		route = readJson<RouteDecision>(file);
 		if (!route) {
 			route = await deps.route(body);
@@ -210,8 +238,9 @@ export async function runQuestion(q: Question, deps: Deps): Promise<void> {
 		return a;
 	};
 
-	const jfileOf = (variant: string) =>
-		join(outDir, "_judgments", `${q.id}__${variant}__j${JUDGE_VERSION}.json`);
+	const jfileOf = (key: string) => join(outDir, "_judgments", `${key}.json`);
+	/** Baseline's verdicts on its own answer from the comparisons judged in this pass. */
+	const baseVerdicts: number[] = [];
 	interface Pending {
 		variant: Variant;
 		row: Record<string, unknown> & { grade: Record<string, number> };
@@ -244,25 +273,18 @@ export async function runQuestion(q: Question, deps: Deps): Promise<void> {
 		} else if (variant !== "baseline") {
 			if (!base) throw new Error("baseline answer missing");
 			let j: Awaited<ReturnType<typeof judgeAnswer>>;
-			const jfile = jfileOf(variant);
-			const cachedJ = readJson<{
-				win: number;
-				bothBad: number;
-				acceptable: number | null;
-				baselineAcceptable: number | null;
-				reason: string;
-				judge: ClaudeResult | null;
-				text: string;
-			}>(jfile);
-			if (cachedJ && cachedJ.text === final.text) {
-				j = { ...cachedJ, setupIsA: false };
+			const baseText = (base as ClaudeResult).text;
+			const jfile = jfileOf(pairKey(q.id, final.text, baseText));
+			const cachedJ = readJson<Judgment>(jfile);
+			if (cachedJ) {
+				j = cachedJ;
 			} else {
 				try {
 					j = await judgeAnswer(runClaude, {
 						id: q.id,
-						setup: variant,
+						setup: sha(final.text),
 						question: q.prompt,
-						baseline: (base as ClaudeResult).text,
+						baseline: baseText,
 						candidate: final.text,
 						timeoutMs,
 					});
@@ -270,9 +292,11 @@ export async function runQuestion(q: Question, deps: Deps): Promise<void> {
 					logError(outDir, variant, q.id, "judge", err);
 					return;
 				}
-				writeFileSync(jfile, JSON.stringify({ ...j, text: final.text }));
+				writeFileSync(jfile, JSON.stringify(j));
 			}
 			grade = { win: j.win, both_bad: j.bothBad };
+			if (j.baselineAcceptable !== null)
+				baseVerdicts.push(j.baselineAcceptable);
 			if (j.acceptable !== null) {
 				grade = { acceptable: j.acceptable, ...grade };
 				needsBase = false;
@@ -323,6 +347,7 @@ export async function runQuestion(q: Question, deps: Deps): Promise<void> {
 				reused: parts.every((p) => p.reused),
 				attempts: parts.reduce((s, p) => s + (p.r.attempts ?? 1), 0),
 				judge_version: JUDGE_VERSION,
+				...(variant === "v2" || variant === "v3" ? { tiers_fp: fp } : {}),
 			},
 		};
 		mkdirSync(join(outDir, variant, "traces"), { recursive: true });
@@ -347,12 +372,7 @@ export async function runQuestion(q: Question, deps: Deps): Promise<void> {
 		explanation: string;
 		judge: ClaudeResult | null;
 	} | null> => {
-		const verdicts: number[] = [];
-		for (const v of ["v1", "v2", "v3"]) {
-			const c = readJson<{ baselineAcceptable: number | null }>(jfileOf(v));
-			if (c && c.baselineAcceptable !== null)
-				verdicts.push(c.baselineAcceptable);
-		}
+		const verdicts = baseVerdicts;
 		if (verdicts.length) {
 			const yes = verdicts.filter((x) => x === 1).length;
 			return {
@@ -362,23 +382,19 @@ export async function runQuestion(q: Question, deps: Deps): Promise<void> {
 			};
 		}
 		const text = (base as ClaudeResult).text;
-		const file = jfileOf("baseline");
+		const file = jfileOf(baseKey(q.id, text));
 		let c = readJson<{
 			acceptable: number;
 			reason: string;
 			judge: ClaudeResult;
-			text: string;
 		}>(file);
-		if (!c || c.text !== text) {
+		if (!c) {
 			try {
-				c = {
-					...(await judgeAcceptable(runClaude, {
-						question: q.prompt,
-						answer: text,
-						timeoutMs,
-					})),
-					text,
-				};
+				c = await judgeAcceptable(runClaude, {
+					question: q.prompt,
+					answer: text,
+					timeoutMs,
+				});
 			} catch (err) {
 				logError(outDir, "baseline", q.id, "judge", err);
 				return null;
@@ -505,7 +521,7 @@ export async function runQuestion(q: Question, deps: Deps): Promise<void> {
 					return;
 				}
 				const h = await answer({ model: HAIKU.model });
-				const jfile = join(outDir, "_judgments", `${q.id}__cascade.json`);
+				const jfile = jfileOf(cascadeKey(q.id, h.r.text));
 				let c = readJson<CascadeOutcome>(jfile);
 				if (!c) {
 					c = await deps.cascade(body, {
@@ -565,4 +581,81 @@ export async function runAll(
 		}
 	};
 	await Promise.all(Array.from({ length: Math.max(1, concurrency) }, worker));
+}
+
+const listDir = (d: string): string[] => (existsSync(d) ? readdirSync(d) : []);
+
+/**
+ * Seed a new run directory from an old one: copy `_answers/` and `_judgments/` (never overwriting),
+ * and migrate current-version old-scheme judgments (`{id}__{variant}__j{N}.json`, `{id}__cascade.json`)
+ * to the content-keyed names. Files whose answer text cannot be determined are skipped. Never writes to `src`.
+ */
+export function seedFrom(
+	src: string,
+	dst: string,
+): { copied: number; migrated: number; skipped: number } {
+	let copied = 0;
+	let migrated = 0;
+	let skipped = 0;
+	for (const d of ["_answers", "_judgments"]) {
+		mkdirSync(join(dst, d), { recursive: true });
+		for (const f of listDir(join(src, d))) {
+			const to = join(dst, d, f);
+			if (existsSync(to)) continue;
+			copyFileSync(join(src, d, f), to);
+			copied++;
+		}
+	}
+	const answerText = (
+		id: string,
+		model: string,
+		effort: string,
+	): string | null =>
+		readJson<{ text?: string }>(
+			join(src, "_answers", `${id}__${model}__${effort}.json`),
+		)?.text ?? null;
+	const put = (name: string, data: unknown): void => {
+		const to = join(dst, "_judgments", name);
+		if (existsSync(to)) return;
+		writeFileSync(to, JSON.stringify(data));
+		migrated++;
+	};
+	const oldJ = new RegExp(
+		`^(\\d+)__(baseline|v1|v2|v3)__j${JUDGE_VERSION}\\.json$`,
+	);
+	for (const f of listDir(join(src, "_judgments"))) {
+		const p = join(src, "_judgments", f);
+		const m = oldJ.exec(f);
+		if (m) {
+			const id = Number(m[1]);
+			const old = readJson<Record<string, unknown> & { text?: string }>(p);
+			const { text, ...j } = old ?? {};
+			const base = answerText(String(id), OPUS, "medium");
+			if (!old || typeof text !== "string" || base === null) {
+				skipped++;
+				continue;
+			}
+			if (m[2] === "baseline") {
+				// the single-answer file's text is the baseline answer it judged
+				if (text !== base) {
+					skipped++;
+					continue;
+				}
+				put(`${baseKey(id, base)}.json`, j);
+			} else {
+				put(`${pairKey(id, text, base)}.json`, j);
+			}
+			continue;
+		}
+		const c = /^(\d+)__cascade\.json$/.exec(f);
+		if (c) {
+			const h = answerText(c[1] as string, HAIKU.model, "none");
+			if (h === null) {
+				skipped++;
+				continue;
+			}
+			put(`${cascadeKey(Number(c[1]), h)}.json`, readJson(p));
+		}
+	}
+	return { copied, migrated, skipped };
 }

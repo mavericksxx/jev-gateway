@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { VARIANTS } from "./lib/runner";
 
 export interface Row {
@@ -145,11 +145,59 @@ export function summarizeDir(dir: string): Record<string, VariantSummary> {
 	return out;
 }
 
+const num = (x: number | null, d = 4) => (x === null ? "n/a" : x.toFixed(d));
+const ci = (r: number, c: [number, number], d = 3) =>
+	`${r.toFixed(d)} (${c[0].toFixed(d)}, ${c[1].toFixed(d)})`;
+
+/** Per-setup table for two run directories side by side, plus each run's v2 tier mix. */
+export function renderCompare(
+	nameA: string,
+	a: Record<string, VariantSummary>,
+	nameB: string,
+	b: Record<string, VariantSummary>,
+): string {
+	const lines = [
+		`| setup | run | n | acceptable (95% CI) | mean win (95% CI) | answer $ | $/acceptable |`,
+		"|---|---|---|---|---|---|---|",
+	];
+	for (const v of VARIANTS) {
+		for (const [name, s] of [
+			[nameA, a],
+			[nameB, b],
+		] as const) {
+			const x = s[v];
+			if (!x) continue;
+			lines.push(
+				`| ${v} | ${name} | ${x.graded} | ${ci(x.acceptable_rate, x.acceptable_ci95)} | ${ci(x.mean_win, x.ci95)} | ${num(x.answer_cost_usd)} | ${num(x.cost_per_acceptable_usd)} |`,
+			);
+		}
+	}
+	lines.push("");
+	for (const [name, s] of [
+		[nameA, a],
+		[nameB, b],
+	] as const)
+		lines.push(`${name} v2 tier mix: ${JSON.stringify(s.v2?.tier_mix ?? {})}`);
+	return `${lines.join("\n")}\n`;
+}
+
 if (import.meta.main) {
-	const dir = new URL("./runs/mt-bench", import.meta.url).pathname;
-	const s = summarizeDir(dir);
-	const md = renderMarkdown(s);
-	writeFileSync(join(dir, "summary.json"), JSON.stringify(s, null, 2));
-	writeFileSync(join(dir, "summary.md"), md);
-	console.log(md);
+	const arg = (n: string, k = 1): string[] => {
+		const i = process.argv.indexOf(n);
+		return i >= 0 ? process.argv.slice(i + 1, i + 1 + k) : [];
+	};
+	const cmp = arg("--compare", 2);
+	if (cmp.length === 2) {
+		const [x, y] = cmp.map((d) => resolve(d)) as [string, string];
+		console.log(renderCompare(x, summarizeDir(x), y, summarizeDir(y)));
+	} else {
+		const dir = arg("--out")[0]
+			? resolve(arg("--out")[0] as string)
+			: new URL("./runs/mt-bench", import.meta.url).pathname;
+		const s = summarizeDir(dir);
+		const md = renderMarkdown(s);
+		writeFileSync(join(dir, "summary.json"), JSON.stringify(s, null, 2));
+		writeFileSync(join(dir, "summary.md"), md);
+		console.log(md);
+	}
 }

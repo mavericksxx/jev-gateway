@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import {
 	existsSync,
+	mkdirSync,
 	mkdtempSync,
 	readdirSync,
 	readFileSync,
@@ -11,8 +12,20 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ClaudeCall, ClaudeResult, RunClaude } from "../eval/lib/claude";
 import { JUDGE_SINGLE_SYSTEM, JUDGE_VERSION } from "../eval/lib/judge";
-import { type Deps, runAll } from "../eval/lib/runner";
-import { median, type Row, summarizeVariant } from "../eval/summarize";
+import {
+	type Deps,
+	runAll,
+	seedFrom,
+	sha,
+	tiersFingerprint,
+} from "../eval/lib/runner";
+import { loadQuestions } from "../eval/run";
+import {
+	median,
+	type Row,
+	renderCompare,
+	summarizeVariant,
+} from "../eval/summarize";
 import type { RouteDecision } from "../src/types";
 
 const usage = {
@@ -126,7 +139,8 @@ test("opus-medium route reuses baseline answer; ties without judge; rows complet
 });
 
 test("baseline acceptability is the mean across judged comparisons", async () => {
-	const s = setup("opus-low", 0.3);
+	// distinct answers per setup (opus-low, sonnet-low, accepted Haiku) so each is judged separately
+	const s = setup("sonnet-low", 0.9);
 	const orig = s.deps.runClaude;
 	let n = 0;
 	s.deps.runClaude = async (c) => {
@@ -198,7 +212,7 @@ test("judge-version bump re-grades old rows without new answer calls or duplicat
 	expect(answerCalls()).toBe(nAns);
 	expect(s.cascades()).toBe(nCascade);
 	expect(s.calls.filter((c) => c.model === "claude-fable-5-1").length).toBe(
-		nJudge + 3,
+		nJudge + 1, // v1, v2 and v3 share one answer, hence one judgment
 	);
 	for (const v of ["baseline", "v1", "v2", "v3"]) {
 		const rs = rows(s.outDir, v);
@@ -329,4 +343,221 @@ test("summarize math", () => {
 	expect(s.tier_mix).toEqual({ haiku: 1, "opus-low": 2 });
 	expect(s.cascade_accept_rate).toBe(0.5);
 	expect(median([3, 1, 2])).toBe(2);
+});
+
+const FABLE = "claude-fable-5-1";
+const judgeCalls = (s: { calls: ClaudeCall[] }) =>
+	s.calls.filter((c) => c.model === FABLE).length;
+
+test("route cache: same tiers reuse, changed fingerprint re-routes", async () => {
+	const s = setup("opus-low", 0.9);
+	let routed = 0;
+	s.deps.route = async () => {
+		routed++;
+		return route("opus-low");
+	};
+	await runAll(Q, s.deps, 1);
+	expect(routed).toBe(1);
+	const fp = tiersFingerprint();
+	expect(existsSync(join(s.outDir, "_routes", `81__${fp}.json`))).toBe(true);
+	expect(rows(s.outDir, "v2")[0]?.meta.tiers_fp).toBe(fp);
+	// different offered tiers -> different fingerprint -> routed again, rows rewritten once
+	s.deps.offeredTiers = ["haiku", "opus-low"];
+	await runAll(Q, s.deps, 1);
+	expect(routed).toBe(2);
+	expect(rows(s.outDir, "v2")).toHaveLength(1);
+	expect(rows(s.outDir, "v2")[0]?.meta.tiers_fp).toBe(
+		tiersFingerprint(["haiku", "opus-low"]),
+	);
+	expect(rows(s.outDir, "v1")).toHaveLength(1);
+	// same fingerprint again: skipped
+	await runAll(Q, s.deps, 1);
+	expect(routed).toBe(2);
+	// route cache reused when only judgments are stale
+	for (const v of ["v2", "v3"]) {
+		const p = join(s.outDir, v, "results.jsonl");
+		const old = rows(s.outDir, v).map((r) => ({
+			...r,
+			meta: { ...r.meta, tiers_fp: "old" },
+		}));
+		writeFileSync(p, old.map((r) => `${JSON.stringify(r)}\n`).join(""));
+	}
+	await runAll(Q, s.deps, 1);
+	expect(routed).toBe(2);
+	expect(rows(s.outDir, "v3")[0]?.meta.tiers_fp).toBe(
+		tiersFingerprint(["haiku", "opus-low"]),
+	);
+});
+
+test("judgment cache is content keyed: shared pair, new answer -> new call", async () => {
+	const s = setup("opus-low", 0.3);
+	await runAll(Q, s.deps, 1);
+	// v1, v2, v3 all answered with the same opus-low text: one comparison judgment
+	expect(judgeCalls(s)).toBe(1);
+	// wipe rows and change the opus-low answer: new judgment
+	for (const v of ["baseline", "v1", "v2", "v3"])
+		rmSync(join(s.outDir, v, "results.jsonl"));
+	rmSync(join(s.outDir, "_answers", "81__claude-opus-5-5__low.json"));
+	const run = s.deps.runClaude;
+	s.deps.runClaude = async (c) => {
+		const r = await run(c);
+		return c.effort === "low" ? { ...r, text: "changed" } : r;
+	};
+	await runAll(Q, s.deps, 1);
+	expect(judgeCalls(s)).toBe(2);
+});
+
+test("cascade cache is keyed by the Haiku answer", async () => {
+	const s = setup("opus-low", 0.3);
+	await runAll(Q, s.deps, 1);
+	expect(s.cascades()).toBe(1);
+	rmSync(join(s.outDir, "v3", "results.jsonl"));
+	await runAll(Q, s.deps, 1);
+	expect(s.cascades()).toBe(1);
+	rmSync(join(s.outDir, "v3", "results.jsonl"));
+	rmSync(join(s.outDir, "_answers", "81__claude-haiku-4-5__none.json"));
+	const run = s.deps.runClaude;
+	s.deps.runClaude = async (c) => {
+		const r = await run(c);
+		return c.model.includes("haiku") ? { ...r, text: "new haiku" } : r;
+	};
+	await runAll(Q, s.deps, 1);
+	expect(s.cascades()).toBe(2);
+});
+
+test("seedFrom copies answers and judgments, not rows or routes, without overwriting", async () => {
+	const a = setup("opus-low", 0.3);
+	await runAll(Q, a.deps, 1);
+	const dst = mkdtempSync(join(tmpdir(), "eval-seed-"));
+	const ans = readdirSync(join(a.outDir, "_answers"));
+	const jud = readdirSync(join(a.outDir, "_judgments"));
+	mkdirSync(join(dst, "_answers"), { recursive: true });
+	writeFileSync(join(dst, "_answers", ans[0] as string), "keep");
+	const r = seedFrom(a.outDir, dst);
+	expect(r.copied).toBe(ans.length + jud.length - 1);
+	expect(readFileSync(join(dst, "_answers", ans[0] as string), "utf8")).toBe(
+		"keep",
+	);
+	expect(readdirSync(dst).sort()).toEqual(["_answers", "_judgments"]);
+	// a fully seeded run makes only the routing call's worth of nothing: no answer or judge calls
+	const b = setup("opus-low", 0.3);
+	rmSync(b.outDir, { recursive: true });
+	seedFrom(a.outDir, b.outDir);
+	await runAll(Q, b.deps, 1);
+	expect(b.calls).toHaveLength(0);
+	expect(b.cascades()).toBe(0);
+	expect(rows(b.outDir, "v3")).toHaveLength(1);
+});
+
+test("seedFrom migrates old-scheme judgments to content keys, skipping unknowns", async () => {
+	const src = mkdtempSync(join(tmpdir(), "eval-old-"));
+	const J = join(src, "_judgments");
+	const A = join(src, "_answers");
+	mkdirSync(J, { recursive: true });
+	mkdirSync(A, { recursive: true });
+	const ans = (f: string, text: string) =>
+		writeFileSync(join(A, f), JSON.stringify({ text }));
+	ans("81__claude-opus-5-5__medium.json", "ans-claude-opus-5-5-medium");
+	ans("81__claude-haiku-4-5__none.json", "ans-claude-haiku-4-5-none");
+	const pair = {
+		win: 1,
+		bothBad: 0,
+		acceptable: 1,
+		baselineAcceptable: 1,
+		reason: "r",
+		setupIsA: true,
+		judge: null,
+	};
+	writeFileSync(
+		join(J, `81__v1__j${JUDGE_VERSION}.json`),
+		JSON.stringify({ ...pair, text: "low" }),
+	);
+	writeFileSync(
+		join(J, `81__v3__j${JUDGE_VERSION - 1}.json`),
+		JSON.stringify({ ...pair, text: "x" }),
+	);
+	writeFileSync(
+		join(J, `81__baseline__j${JUDGE_VERSION}.json`),
+		JSON.stringify({
+			acceptable: 1,
+			reason: "s",
+			judge: null,
+			text: "ans-claude-opus-5-5-medium",
+		}),
+	);
+	writeFileSync(
+		join(J, "81__cascade.json"),
+		JSON.stringify({
+			passProbability: 0.3,
+			jevCostUsd: 0,
+			jevLatencyMs: 0,
+			error: null,
+		}),
+	);
+	// no baseline answer on disk for question 82: cannot be keyed, skipped
+	writeFileSync(
+		join(J, `82__v1__j${JUDGE_VERSION}.json`),
+		JSON.stringify({ ...pair, text: "low" }),
+	);
+	const before = readdirSync(J).sort();
+	const dst = mkdtempSync(join(tmpdir(), "eval-new-"));
+	const r = seedFrom(src, dst);
+	expect(r.migrated).toBe(3);
+	expect(r.skipped).toBe(1);
+	expect(readdirSync(J).sort()).toEqual(before);
+	// a re-run of question 81 now needs no judge and no cascade call
+	const s = setup("opus-low", 0.3, (c) =>
+		c.model.includes("haiku")
+			? "ans-claude-haiku-4-5-none"
+			: c.effort === "low"
+				? "low"
+				: "ans-claude-opus-5-5-medium",
+	);
+	rmSync(s.outDir, { recursive: true });
+	seedFrom(src, s.outDir);
+	await runAll(Q, s.deps, 1);
+	expect(judgeCalls(s)).toBe(0);
+	expect(s.cascades()).toBe(0);
+	expect(rows(s.outDir, "v1")[0]?.grade.win).toBe(1);
+});
+
+test("loadQuestions: heldout is the 40 unselected ids in order across all categories", () => {
+	const sel = JSON.parse(
+		readFileSync(
+			new URL("../eval/data/selection.json", import.meta.url),
+			"utf8",
+		),
+	) as { ids: number[] };
+	const h = loadQuestions({ heldout: true });
+	expect(h).toHaveLength(40);
+	const ids = h.map((q) => q.id);
+	expect(ids).toEqual([...ids].sort((a, b) => a - b));
+	expect(ids.some((i) => sel.ids.includes(i))).toBe(false);
+	expect(new Set(h.map((q) => q.category)).size).toBe(8);
+	expect(loadQuestions({ ids: [ids[0] as number] })[0]?.id).toBe(ids[0]);
+	expect(() => loadQuestions({ heldout: true, pilot: true })).toThrow();
+});
+
+test("renderCompare shows both runs per setup and v2 tier mixes", () => {
+	const mk = (rate: number, tier: string) => ({
+		...summarizeVariant([
+			{
+				grade: { acceptable: rate, win: 0.5, both_bad: 0 },
+				cost_usd: 2,
+				judge_cost_usd: 0,
+				latency_s: 1,
+				status: "ok",
+				meta: { route: { tier } },
+			},
+		]),
+	});
+	const out = renderCompare("A", { v1: mk(1, "x"), v2: mk(1, "haiku") }, "B", {
+		v1: mk(0, "x"),
+		v2: mk(1, "opus-low"),
+	});
+	expect(out).toContain("| v1 | A | 1 | 1.000");
+	expect(out).toContain("| v1 | B | 1 | 0.000");
+	expect(out).toContain('A v2 tier mix: {"haiku":1}');
+	expect(out).toContain('B v2 tier mix: {"opus-low":1}');
+	expect(out).toContain("n/a");
 });

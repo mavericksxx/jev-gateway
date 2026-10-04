@@ -1,10 +1,11 @@
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { createCascadeJudge } from "../src/cascade/judge";
 import { createJevClient } from "../src/jev/client";
 import { createRouter, type JevBudget } from "../src/routing/router";
 import { runClaudeCli } from "./lib/claude";
 import { judgeSelftest } from "./lib/judge";
-import { type Deps, type Question, runAll } from "./lib/runner";
+import { type Deps, type Question, runAll, seedFrom } from "./lib/runner";
 
 export const OUT_DIR = new URL("./runs/mt-bench", import.meta.url).pathname;
 
@@ -14,17 +15,16 @@ const arg = (name: string): string | undefined => {
 };
 const flag = (name: string): boolean => process.argv.includes(name);
 
-function loadQuestions(): Question[] {
+export function loadQuestions(
+	mode: { pilot?: boolean; ids?: number[]; heldout?: boolean } = {},
+): Question[] {
+	if ([mode.pilot, mode.ids, mode.heldout].filter(Boolean).length > 1)
+		throw new Error("--pilot, --ids and --heldout are mutually exclusive");
 	const dir = new URL("./data/", import.meta.url).pathname;
 	const sel = JSON.parse(readFileSync(`${dir}selection.json`, "utf8")) as {
 		ids: number[];
 		pilot: number[];
 	};
-	const ids = flag("--pilot")
-		? sel.pilot
-		: arg("--ids")
-			? (arg("--ids") as string).split(",").map(Number)
-			: sel.ids;
 	const byId = new Map<number, Question>();
 	for (const line of readFileSync(`${dir}mt-bench-questions.jsonl`, "utf8")
 		.split("\n")
@@ -40,6 +40,16 @@ function loadQuestions(): Question[] {
 			prompt: r.turns[0] as string,
 		});
 	}
+	const selected = new Set(sel.ids);
+	const ids = mode.pilot
+		? sel.pilot
+		: mode.ids
+			? mode.ids
+			: mode.heldout
+				? [...byId.keys()]
+						.filter((id) => !selected.has(id))
+						.sort((a, b) => a - b)
+				: sel.ids;
 	return ids.map((id) => {
 		const q = byId.get(id);
 		if (!q) throw new Error(`unknown question id ${id}`);
@@ -73,6 +83,7 @@ async function main(): Promise<void> {
 		timeoutMs: 2000,
 	});
 	const cascadeJudge = createCascadeJudge({ jev, budget, timeoutMs: 2000 });
+	const outDir = arg("--out") ? resolve(arg("--out") as string) : OUT_DIR;
 	const deps: Deps = {
 		runClaude: runClaudeCli,
 		route: (body) => router.route(body),
@@ -88,10 +99,22 @@ async function main(): Promise<void> {
 				error: r.error,
 			};
 		},
-		outDir: OUT_DIR,
+		outDir,
 		timeoutMs,
 	};
-	const qs = loadQuestions();
+	const ids = arg("--ids");
+	const qs = loadQuestions({
+		pilot: flag("--pilot"),
+		heldout: flag("--heldout"),
+		...(ids ? { ids: ids.split(",").map(Number) } : {}),
+	});
+	const seed = arg("--seed-from");
+	if (seed) {
+		const r = seedFrom(resolve(seed), outDir);
+		console.log(
+			`seeded from ${seed}: copied ${r.copied}, migrated ${r.migrated}, skipped ${r.skipped}`,
+		);
+	}
 	await runAll(qs, deps, Number(arg("--concurrency") ?? 2));
 	console.log(`done: ${qs.length} questions; Jev spend $${spent.toFixed(5)}`);
 }
