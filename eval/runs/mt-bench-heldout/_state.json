@@ -1,0 +1,60 @@
+{
+  "schema": "hillclimb/v2",
+  "metrics": [
+    {
+      "id": "acceptable",
+      "label": "Acceptable",
+      "kind": "float",
+      "scale": 1
+    },
+    {
+      "id": "win",
+      "label": "Win vs Opus",
+      "kind": "float",
+      "scale": 1
+    },
+    {
+      "id": "both_bad",
+      "label": "Both bad",
+      "kind": "binary"
+    }
+  ],
+  "perf_fields": [
+    {
+      "id": "cost_usd",
+      "label": "Cost",
+      "unit": "usd"
+    },
+    {
+      "id": "in_tokens",
+      "label": "Input tokens"
+    },
+    {
+      "id": "out_tokens",
+      "label": "Output tokens"
+    },
+    {
+      "id": "latency_s",
+      "label": "Latency",
+      "unit": "s"
+    }
+  ],
+  "variants": [
+    {
+      "id": "baseline",
+      "description": "Always Opus 5.5 at medium effort (the reference)."
+    },
+    {
+      "id": "v1",
+      "description": "Always Opus 5.5 at low effort."
+    },
+    {
+      "id": "v2",
+      "description": "Jev router picks the tier (model and effort) per question."
+    },
+    {
+      "id": "v3",
+      "description": "Jev router plus cheap-first: Haiku answer kept when Jev passes it (>= 0.7), else the routed tier's answer."
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+	"win": 0,
+	"bothBad": 0,
+	"acceptable": 1,
+	"baselineAcceptable": 1,
+	"reason": "Both correctly say you are now second and the overtaken person is third. B is concise and error-free, while A adds a tangential aside that is wrong: you cannot overtake the last person, so it would not make you second to last.",
+	"setupIsA": true,
+	"judge": {
+		"text": "{\"verdict\": \"B\", \"acceptable\": {\"A\": true, \"B\": true}, \"reason\": \"Both correctly say you are now second and the overtaken person is third. B is concise and error-free, while A adds a tangential aside that is wrong: you cannot overtake the last person, so it would not make you second to last.\"}",
+		"model": "claude-fable-5-1",
+		"usage": {
+			"input_tokens": 2,
+			"output_tokens": 346,
+			"cache_read_input_tokens": 0,
+			"cache_creation_input_tokens": 1208
+		},
+		"costUsd": 0.04148,
+		"durationMs": 5322,
+		"stopReason": "end_turn",
+		"raw": {
+			"duration_api_ms": 3922,
+			"stop_reason": "end_turn",
+			"session_id": "56102f8f-c73b-4a36-9084-cf9dabd81fb3",
+			"total_cost_usd": 0.04148,
+			"usage": {
+				"input_tokens": 2,
+				"cache_creation_input_tokens": 1208,
+				"cache_read_input_tokens": 0,
+				"output_tokens": 346,
+				"output_tokens_details": { "thinking_tokens": 245 },
+				"server_tool_use": {
+					"web_search_requests": 0,
+					"web_fetch_requests": 0
+				},
+				"service_tier": "standard",
+				"cache_creation": {
+					"ephemeral_1h_input_tokens": 1208,
+					"ephemeral_5m_input_tokens": 0
+				},
+				"inference_geo": "not_available",
+				"iterations": [
+					{
+						"input_tokens": 2,
+						"output_tokens": 346,
+						"cache_read_input_tokens": 0,
+						"cache_creation_input_tokens": 1208,
+						"cache_creation": {
+							"ephemeral_5m_input_tokens": 0,
+							"ephemeral_1h_input_tokens": 1208
+						},
+						"type": "message"
+					}
+				],
+				"speed": "standard",
+				"fallback_credit": null
+			},
+			"modelUsage": {
+				"claude-fable-5-1": {
+					"inputTokens": 2,
+					"outputTokens": 346,
+					"cacheReadInputTokens": 0,
+					"cacheCreationInputTokens": 1208,
+					"webSearchRequests": 0,
+					"costUSD": 0.04148,
+					"contextWindow": 1000000,
+					"maxOutputTokens": 128000,
+					"thinkingTokens": 245,
+					"canonicalModel": "claude-fable-5-1",
+					"provider": "firstParty",
+					"costBasis": "list"
+				}
+			},
+			"permission_denials": [],
+			"terminal_reason": "completed",
+			"fast_mode_state": "off",
+			"fast_mode_disabled_reason": "sdk_opt_in_required",
+			"subagent_stats": {
+				"spawned": 0,
+				"requested": { "background": 0, "foreground": 0, "unset": 0 },
+				"started_in_background": 0,
+				"max_depth": 0,
+				"spawned_by_subagents": 0,
+				"completed": 0,
+				"failed": 0,
+				"killed": { "parent": 0, "user": 0, "system": 0 },
+				"refused": { "depth_limit": 0, "concurrency_limit": 0, "budget": 0 },
+				"by_type": {}
+			},
+			"is_error": false,
+			"num_turns": 1,
+			"subtype": "success",
+			"api_error_status": null,
+			"result": "{\"verdict\": \"B\", \"acceptable\": {\"A\": true, \"B\": true}, \"reason\": \"Both correctly say you are now second and the overtaken person is third. B is concise and error-free, while A adds a tangential aside that is wrong: you cannot overtake the last person, so it would not make you second to last.\"}",
+			"ttft_ms": 3111,
+			"type": "result",
+			"duration_ms": 5322,
+			"uuid": "74459e85-6669-4ed8-ab48-3397f8c0f4f7",
+			"ttft_stream_ms": 788,
+			"time_to_request_ms": 82,
+			"first_content_frame_ms": 788,
+			"queued_turn_count": 0,
+			"result_index": 0
+		},
+		"attempts": 1
+	},
+	"text": "# The Answer\n\nIf you just overtook the second person, **you are now in second place**, and **the person you overtook is now in third place**.\n\n## Why?\n\nWhen you overtake someone, you move into the position they were occupying, and they drop one position behind you. So:\n\n- **Before:** [1st place] → [2nd place (the person you overtook)] → [You] → ...\n- **After:** [1st place] → [You (now 2nd)] → [Overtaken person (now 3rd)] → ...\n\nThis puzzle is sometimes phrased as \"overtaking the last person\" (which would make you second to last), which can be confusing. But with the second person, it's straightforward—you're now in second!"
+}

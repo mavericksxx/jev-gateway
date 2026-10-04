@@ -1,0 +1,111 @@
+{
+  "baseline": {
+    "graded": 40,
+    "acceptable_rate": 0.9916666666666666,
+    "acceptable_ci95": [
+      0.9753333333333333,
+      1.008
+    ],
+    "acceptable_count": 39.666666666666664,
+    "cost_per_acceptable_usd": 0.025092605042016818,
+    "mean_win": 0.5,
+    "ci95": [
+      0.5,
+      0.5
+    ],
+    "wins": 0,
+    "ties": 40,
+    "losses": 0,
+    "both_bad": 0,
+    "answer_cost_usd": 0.9953400000000003,
+    "answer_cost_per_question_usd": 0.02488350000000001,
+    "judge_cost_usd": 0,
+    "jev_cost_usd": 0,
+    "median_latency_s": 10.2285
+  },
+  "v1": {
+    "graded": 40,
+    "acceptable_rate": 0.95,
+    "acceptable_ci95": [
+      0.8815977208356929,
+      1.018402279164307
+    ],
+    "acceptable_count": 38,
+    "cost_per_acceptable_usd": 0.022485073684210523,
+    "mean_win": 0.4375,
+    "ci95": [
+      0.33709521029915057,
+      0.5379047897008494
+    ],
+    "wins": 6,
+    "ties": 23,
+    "losses": 11,
+    "both_bad": 0,
+    "answer_cost_usd": 0.8544327999999999,
+    "answer_cost_per_question_usd": 0.021360819999999996,
+    "judge_cost_usd": 3.6268399999999996,
+    "jev_cost_usd": 0,
+    "median_latency_s": 8.748
+  },
+  "v2": {
+    "graded": 40,
+    "acceptable_rate": 0.875,
+    "acceptable_ci95": [
+      0.7712034781473004,
+      0.9787965218526996
+    ],
+    "acceptable_count": 35,
+    "cost_per_acceptable_usd": 0.014130114285714286,
+    "mean_win": 0.3875,
+    "ci95": [
+      0.2852722815951739,
+      0.4897277184048261
+    ],
+    "wins": 5,
+    "ties": 21,
+    "losses": 14,
+    "both_bad": 0,
+    "answer_cost_usd": 0.49455400000000005,
+    "answer_cost_per_question_usd": 0.012363850000000001,
+    "judge_cost_usd": 3.1433000000000004,
+    "jev_cost_usd": 0.0012951540000000002,
+    "median_latency_s": 7.5015,
+    "tier_mix": {
+      "sonnet-low": 28,
+      "opus-medium": 4,
+      "opus-low": 2,
+      "haiku": 6
+    }
+  },
+  "v3": {
+    "graded": 40,
+    "acceptable_rate": 0.675,
+    "acceptable_ci95": [
+      0.528,
+      0.8220000000000001
+    ],
+    "acceptable_count": 27,
+    "cost_per_acceptable_usd": 0.009144407407407405,
+    "mean_win": 0.1125,
+    "ci95": [
+      0.046970646624232934,
+      0.17802935337576709
+    ],
+    "wins": 0,
+    "ties": 9,
+    "losses": 31,
+    "both_bad": 0,
+    "answer_cost_usd": 0.24689899999999995,
+    "answer_cost_per_question_usd": 0.0061724749999999984,
+    "judge_cost_usd": 3.3655800000000005,
+    "jev_cost_usd": 0.0024363780000000008,
+    "median_latency_s": 8.3675,
+    "tier_mix": {
+      "sonnet-low": 28,
+      "opus-medium": 4,
+      "opus-low": 2,
+      "haiku": 6
+    },
+    "cascade_accept_rate": 0.9117647058823529
+  }
+}

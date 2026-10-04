@@ -10,25 +10,25 @@ A local proxy for the Claude Messages API that uses [TypeSafe Jev](https://types
 
 Every Jev decision costs about $0.00003 and 0.3–0.6 s. Every feature fails open: if Jev errors, times out or its budget runs out, the request goes through unchanged.
 
-## Results (v0.1)
+## Results
 
-40 [MT-Bench](https://github.com/lm-sys/FastChat) questions (5 per category, first turn only), answered four ways and judged by Claude Fable against the always-Opus answer. "Acceptable" = every claim correct, every instruction followed, nothing important missing.
+80 [MT-Bench](https://github.com/lm-sys/FastChat) questions (first turn only), answered several ways and judged by Claude Fable against the always-Opus answer. "Acceptable" = every claim correct, every instruction followed, nothing important missing. The router's tier descriptions were tuned on the first 40 questions; the other 40 were held out to check the tuning generalizes.
 
-| Setup | Acceptable (95% CI) | As good as Opus¹ | Answer cost | Saved | Cost per acceptable answer |
+| Setup | Tuning set (40): acceptable | Saved | Held-out (40): acceptable (95% CI) | Saved | Held-out cost per acceptable answer |
 |---|---|---|---|---|---|
-| Always Opus 5.5, medium effort (reference) | 94% (87–100) | — | $1.23 | — | $0.033 |
-| Always Opus 5.5, low effort | 93% (84–100) | 0.50 | $0.95 | 22% | $0.026 |
-| **Jev router** | 80% (67–93) | 0.26 | $0.75 | **39%** | **$0.023** |
-| Jev router + cheap-first retry | 70% (56–84) | 0.18 | $0.56 | 54% | $0.020 |
-
-¹ Mean side-by-side score vs the reference: 0.5 = as good on average, 0 = always worse.
+| Always Opus 5.5, medium effort (reference) | 96% | — | 99% (97–100) | — | $0.025 |
+| Always Opus 5.5, low effort | 93% | 22% | 95% (88–100) | 14% | $0.023 |
+| Jev router, v0.1 tiers | 80% | 39% | not run | | |
+| **Jev router, tuned tiers** | **93%** | **52%** | **88% (77–98)** | **50%** | **$0.014** |
+| Tuned router + cheap-first retry | 75% | 64% | 68% (53–82) | 75% | $0.009 |
 
 What this says:
-- **Routing to Sonnet works** (91% acceptable, 68% cheaper on the 11 questions it got). **Routing to Haiku is where quality is lost** (75% acceptable on 16 questions), mostly on reasoning, role-play and instruction-heavy writing.
-- **Opus at low effort is the strong simple baseline**: 22% cheaper with no measurable quality loss.
-- **Cheap-first retry is too lenient at its default threshold (0.7)**: Jev accepted Haiku's answer 75% of the time, including answers the judge rated unacceptable.
+- **The tuned router halves the cost.** On held-out questions it saved 50% at 88% acceptable, versus 99% for always-Opus; cost per acceptable answer fell from $0.025 to $0.014. The quality gap is real but the intervals overlap at this sample size.
+- **Tuning came from narrowing the Haiku tier.** v0.1 sent 16 of 40 questions to Haiku and lost most of its quality there; the tuned descriptions send most questions to Sonnet at low effort (28–32 of 40), which stays around 90% acceptable at about 60% cheaper.
+- **Opus at low effort is the safe option**: 14–22% cheaper with no measurable quality loss.
+- **Cheap-first retry should stay off.** Jev's "does this fully answer it?" check accepted Haiku's answer 91% of the time on held-out questions, including many the judge rated unacceptable.
 
-Caveats: one run per question, so the intervals overlap; MT-Bench is public and may be in the models' training data; answers came from `claude -p` (Claude Code print mode with a minimal system prompt), which measures the routing decisions, not the proxy itself; costs are API-equivalent list prices. Full per-question results: `eval/runs/mt-bench/` (`summary.md`, `report.html`).
+Caveats: one run per question; MT-Bench is public and may be in the models' training data; answers came from `claude -p` (Claude Code print mode with a minimal system prompt), which measures the routing decisions, not the proxy itself; costs are API-equivalent list prices. Per-question results: `eval/runs/mt-bench/` (v0.1), `eval/runs/mt-bench-r2/` (tuned, tuning set), `eval/runs/mt-bench-heldout/` (tuned, held-out); each has `summary.md` and `report.html`.
 
 ## Quick start
 
@@ -93,8 +93,9 @@ See [SPEC.md](SPEC.md) for the design and build phases.
 
 ## Next steps
 
-- Tighten the Haiku tier description (route reasoning, role-play and instruction-heavy writing to Sonnet) and offer Opus-low as a tier the router prefers over Opus-medium.
-- Raise the cheap-first threshold (try 0.9) and re-run the eval; saved answers make re-runs cheap.
+- Run the old (v0.1) router on the held-out set too, for a like-for-like comparison of the tuning.
+- Rework cheap-first retry: a stricter Jev check (or a threshold around 0.9) before it can be turned on.
+- Repeat runs (2–3 per question) to narrow the confidence intervals.
 - Test end-to-end through the proxy against the real Anthropic API.
 
 ## License
